@@ -1,0 +1,8 @@
+*.ReSharper.user
+*.userprefs
+*~
+*.pidb
+*.pdb
+*.suo
+bin
+obj

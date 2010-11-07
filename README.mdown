@@ -7,16 +7,17 @@ because the containers are defined using .NET Interfaces, not XML, not dictionar
 This is version 1.0. A very basic 1.0. I wouldn't recommend using it yet, except for the most basic of purposes. OTOH, how you use
 the system isn't going to change: the system uses interfaces and thats about it. There will be more features coming: it is a WIP.
 
-What's in Version 1.0:
+What's in the current version:
 
 1. Singleton generation.
 2. Object injection using constructors only. Which is actually a very bad habit so don't do it.
+3. Detects cyclic dependencies (throws exception)
 
-What's not in Version 1.0:
+Future versions:
 
-1. Doesn't handle cyclic dependencies.
-2. Doesn't handle non-cyclic dependencies that happen "in the wrong order".
-3. Context hiearchies.
+1. Injection using properties and methods.
+2. Context hiearchies.
+3. Post-construction events / methods.
 
 How To Use It
 -------------
@@ -89,6 +90,22 @@ to pass and b) I'm doing MonoTouch development and I can't use reflection for th
 As you can see, this basic version of a Context implementation will be easy to generate using Emit, but for now, you have to do it yourself.
 
 Future version will generate the context at runtime using Emit, or tools will create this class for you automatically for use with MonoTouch.
+
+Cyclic Dependencies in Constructors
+-----------------------------------
+
+There are a couple of ways around cyclic dependencies in constructors, though all of them will throw an exception in
+the case that a dependency is actually used.
+
+1. Use object allocation followed by object initialization.
+2. Use wrappers if the dependency is an interface.
+
+Method 1 is not available in silverlight, nor I suspect MonoTouch. Method 2 is only available if one of the cyclic dependencies is 
+an interface, and only then if code can be generated. These methods allow the cycle to be broken such that the first one created
+is given references to either an unitialized object, or an uninitialized proxy. If the constructor attempts to use that dependency
+then it will be handed an exception, or worse, it will fail at some later time.
+
+As a result, BF.IOC will never handle cyclic dependencies in constructors other than to throw an exception.
 
 Background
 ----------

@@ -40,7 +40,14 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
         }
     }
 
-    public interface IDependencyTestContext : IContext
+    public interface IDependencyTestBaseContext : IContext
+    {
+        IFoo FooP { get; }
+        IDeps DepsP { get; }
+    }
+
+
+    public interface IDependencyTestContext : IDependencyTestBaseContext
     {
         [Implementation(typeof(Foo))]
         IFoo FooP { get; }
@@ -119,10 +126,8 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     }
 
 
-    public class DependencyTestContextImpl : BaseContextImpl
+    public class DependencyTestContextImpl : BaseContextImpl, IDependencyTestBaseContext
     {
-
-
         public IFoo FooP
         {
             get { return (IFoo) Factory.ObjectForProperty("FooP"); }

@@ -88,6 +88,8 @@ to pass and b) I'm doing MonoTouch development and I can't use reflection for th
 
 As you can see, this basic version of a Context implementation will be easy to generate using Emit, but for now, you have to do it yourself.
 
+Future version will generate the context at runtime using Emit, or tools will create this class for you automatically for use with MonoTouch.
+
 Background
 ----------
 

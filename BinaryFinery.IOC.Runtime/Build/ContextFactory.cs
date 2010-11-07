@@ -37,8 +37,10 @@ namespace BinaryFinery.IOC.Runtime.Build
     {
         private readonly Type contextType;
         private readonly Type custom;
-        private readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
-        private readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
+        internal readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
+        internal readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
+
+        private Queue<Type> currentRun = null;
 
         public ContextFactory(Type contextType, Type custom)
         {
@@ -96,18 +98,43 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public object ObjectForProperty(string propertyName)
         {
+            if ( currentRun == null)
+            {
+                currentRun = new Queue<Type>();
+            }
             object rv;
             if (singletons.TryGetValue(propertyName, out rv))
             {
                 return rv;
             }
-            Dictionary<Type, object> objects = new Dictionary<Type, object>();
-
             Type type = ImplementationTypeForProperty(propertyName);
-            // find constructor
-            var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-            // find the right one
+            try
+            {
+                currentRun.Enqueue(type);
+                // find constructor
+                ConstructorInfo ctor = GetCtor(type);
+                var parameters = ctor.GetParameters();
+                object[] args = new object[parameters.Length];
+                for (int i = 0; i < args.Length; ++i)
+                {
+                    args[i] = ObjectForType(parameters[i].ParameterType);
+                }
 
+                rv = Activator.CreateInstance(type, args);
+                singletons[propertyName] = rv;
+                singletonsByType[TypeForProperty(propertyName)] = type;
+                return rv;
+            }
+            finally
+            {
+                currentRun.Dequeue();
+                if (currentRun.Count == 0) currentRun = null;
+            }
+        }
+
+        internal ConstructorInfo GetCtor(Type type)
+        {
+            var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
             ConstructorInfo ctor = null;
             foreach (var constructorInfo in ctors)
             {
@@ -122,17 +149,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                     ctor = constructorInfo;
                 }
             }
-            var parameters = ctor.GetParameters();
-            object[] args = new object[parameters.Length];
-            for (int i = 0; i < args.Length; ++i)
-            {
-                args[i] = ObjectForType(parameters[i].ParameterType);
-            }
-
-            rv = Activator.CreateInstance(type, args);
-            singletons[propertyName] = rv;
-            singletonsByType[TypeForProperty(propertyName)] = type;
-            return rv;
+            return ctor;
         }
 
         private object ObjectForType(Type parameterType)
@@ -142,22 +159,35 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 return rv;
             }
-            var props =
-                contextType.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
-            foreach (var propertyInfo in props)
+            if (currentRun.Contains(parameterType))
             {
-                if (propertyInfo.PropertyType == parameterType ||
-                    parameterType.IsAssignableFrom(propertyInfo.PropertyType))
-                {
-                    return ObjectForProperty(propertyInfo.Name);
-                }
-                Type impType = ImplementationTypeForProperty(propertyInfo.Name);
-                if (impType == parameterType || parameterType.IsAssignableFrom(impType))
-                {
-                    return ObjectForProperty(propertyInfo.Name);
-                }
+                throw new CyclicDependencyException(this.contextType);
             }
-            return null;
+            currentRun.Enqueue(parameterType);
+            try
+            {
+                var props =
+                    contextType.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy |
+                                              BindingFlags.Instance);
+                foreach (var propertyInfo in props)
+                {
+                    if (propertyInfo.PropertyType == parameterType ||
+                        parameterType.IsAssignableFrom(propertyInfo.PropertyType))
+                    {
+                        return ObjectForProperty(propertyInfo.Name);
+                    }
+                    Type impType = ImplementationTypeForProperty(propertyInfo.Name);
+                    if (impType == parameterType || parameterType.IsAssignableFrom(impType))
+                    {
+                        return ObjectForProperty(propertyInfo.Name);
+                    }
+                }
+                return null;
+            }
+            finally
+            {
+                currentRun.Dequeue();
+            }
         }
 
         public TContext Create<TContext>()

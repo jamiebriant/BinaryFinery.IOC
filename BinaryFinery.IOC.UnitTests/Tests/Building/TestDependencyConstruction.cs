@@ -71,7 +71,6 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         }
 
         [Test]
-        [Ignore]
         [ExpectedException(typeof(CyclicDependencyException))]
         public void CyclicDepsThrow()
         {

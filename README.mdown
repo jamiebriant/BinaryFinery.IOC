@@ -1,0 +1,96 @@
+BinaryFinery.IOC
+================
+
+BinaryFinery.IOC is a simple Inversion of Control and Dependency Injection framework. BF.IOC is unlike "traditional" IOC containers, 
+because the containers are defined using .NET Interfaces, not XML, not dictionaries, not built using delegates etc.
+
+This is version 1.0. A very basic 1.0. I wouldn't recommend using it yet, except for the most basic of purposes. OTOH, how you use
+the system isn't going to change: the system uses interfaces and thats about it. There will be more features coming: it is a WIP.
+
+What's in Version 1.0:
+
+1. Singleton generation.
+2. Object injection using constructors only. Which is actually a very bad habit so don't do it.
+
+What's not in Version 1.0:
+
+1. Doesn't handle cyclic dependencies.
+2. Doesn't handle non-cyclic dependencies that happen "in the wrong order".
+3. Context hiearchies.
+
+How To Use It
+-------------
+
+A library will define a base context: a group of classes/interfaces that it will expect to work together:
+
+    public interface IDependencyTestBaseContext : IContext
+    {
+        IFoo FooP { get; }
+        IDeps DepsP { get; }
+    }
+
+This is a basic context. The names of the properties are unimportant. If you have an instance of IDependencyTestBaseContext you
+can get an IFoo and an IDeps.
+
+The application will then define specific types that it needs created using Implementation attributes:
+
+    public interface IDependencyTestContext : IDependencyTestBaseContext
+    {
+        [Implementation(typeof(Foo))]
+        IFoo FooP { get; }
+        [Implementation(typeof(Deps))]
+        IDeps DepsP { get; }
+    }
+
+The application can then realise this context as follows:
+
+    CM = ContextSystem.Manager;
+    var context = CM.Create<IDependencyTestContext>();
+    var result = context.DepsP;
+    Assert.That(result,Is.Not.Null);
+
+Specialisation
+--------------
+
+It is possible to specialise further by creating more specialised interfaces:
+
+    public interface IDependencyTestContextAttributed : IDependencyTestContext
+    {
+        [Implementation(typeof(Foo))]
+        IFoo FooP { get; }
+        [Implementation(typeof(DepsAttributed))]
+        IDeps DepsP { get; }
+    }
+
+The system requires that class DepsAttributed is a specialization of class Deps. This is incredibly useful when you have hierarchies of
+libraries which each become more specialized. For example, I have BinaryFinery.Utils which implements logging and exception handling. I then
+have BinaryFinery.Touch, which is a MonoTouch only library. Some of these classes require that the particular logging or exception classes
+be MonoTouch-specific. Finally my application may have further specialization. 
+
+The HACK
+--------
+
+At this point, I have not yet implemented automatic generation of Context implementations because a) I didn't need to to get the tests
+to pass and b) I'm doing MonoTouch development and I can't use reflection for that anyway. So for now, there is a missing step:
+
+    public class DependencyTestContextImpl : BaseContextImpl, IDependencyTestBaseContext
+    {
+        public IFoo FooP
+        {
+            get { return (IFoo) Factory.ObjectForProperty("FooP"); }
+        }
+
+        public IDeps DepsP
+        {
+            get { return (IDeps) Factory.ObjectForProperty("DepsP"); ; }
+        }
+    }
+
+As you can see, this basic version of a Context implementation will be easy to generate using Emit, but for now, you have to do it yourself.
+
+Background
+----------
+
+This is my fourth IOC/DI framework. The previous three were written several years ago, and the third iteration is still in use
+today in a robust C# graphical application. I have not looked at that code for several years and this is a clean implementation
+using test driven development to create what I need for my new apps. 

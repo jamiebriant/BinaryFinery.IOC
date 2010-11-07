@@ -1,4 +1,7 @@
-﻿using System;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using System;
 
 namespace BinaryFinery.IOC.Runtime.Build
 {
@@ -13,9 +16,7 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public Type ContextType
         {
-            get {
-                return contextType;
-            }
+            get { return contextType; }
         }
 
         public override string ToString()
@@ -29,7 +30,8 @@ namespace BinaryFinery.IOC.Runtime.Build
         private readonly Type implementationType;
         private readonly Type requiredType;
 
-        public ImplementationInterfaceMismatchException(Type contextType, Type implementationType, Type requiredType) : base(contextType)
+        public ImplementationInterfaceMismatchException(Type contextType, Type implementationType, Type requiredType)
+            : base(contextType)
         {
             this.implementationType = implementationType;
             this.requiredType = requiredType;
@@ -37,31 +39,29 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public Type ImplementationType
         {
-            get
-            {
-                return implementationType;
-            }
+            get { return implementationType; }
         }
 
         public Type RequiredType
         {
-            get {
-                return requiredType;
-            }
+            get { return requiredType; }
         }
 
         public override string ToString()
         {
-            return string.Format("{0} ImplementationType: {1},\n RequiredType: {2}\n", base.ToString(), implementationType, requiredType);
+            return string.Format("{0} ImplementationType: {1},\n RequiredType: {2}\n", base.ToString(),
+                                 implementationType, requiredType);
         }
     }
+
     public class ImplementationsMismatchException : BuildException
     {
         private readonly Type implementationType;
         private readonly Type baseImplementationType;
         private readonly Type baseContext;
 
-        public ImplementationsMismatchException(Type contextType, Type implementationType, Type baseImplementationType, Type baseContext)
+        public ImplementationsMismatchException(Type contextType, Type implementationType, Type baseImplementationType,
+                                                Type baseContext)
             : base(contextType)
         {
             this.implementationType = implementationType;
@@ -81,15 +81,13 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public Type ImplementationType
         {
-            get
-            {
-                return implementationType;
-            }
+            get { return implementationType; }
         }
 
         public override string ToString()
         {
-            return string.Format("{0} ImplementationType: {1},\n BaseImplementationType: {2},\n BaseContext: {3}", base.ToString(), implementationType, baseImplementationType, baseContext);
+            return string.Format("{0} ImplementationType: {1},\n BaseImplementationType: {2},\n BaseContext: {3}",
+                                 base.ToString(), implementationType, baseImplementationType, baseContext);
         }
     }
 

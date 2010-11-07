@@ -1,4 +1,7 @@
-﻿using System;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using System;
 using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
 using BinaryFinery.IOC.Runtime.Meta;
@@ -11,16 +14,16 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
     public interface IImplementationTestContext : IContext
     {
         [Implementation(typeof(Foo))]
-        IFoo FooP { get;  }
+        IFoo FooP { get; }
     }
 
     public interface IDerivedImplementationTestContext : IImplementationTestContext
     {
-        [Implementation(typeof (FooToo))]
+        [Implementation(typeof(FooToo))]
         IFoo FooP { get; }
     }
 
-    
+
     public class TestComprehension
     {
         [Test]
@@ -28,16 +31,18 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         {
             ContextManager cf = ContextSystem.Manager;
             IContextFactory factory = cf.GetFactory<IRootContext>();
-            Assert.That( factory.ContextType, Is.EqualTo(typeof(IRootContext)));
+            Assert.That(factory.ContextType, Is.EqualTo(typeof(IRootContext)));
         }
+
         [Test]
         public void TestFooPIsFoo()
         {
             ContextManager cf = ContextSystem.Manager;
             IContextFactory factory = cf.GetFactory<IRootContext>();
             Type foot = factory.TypeForProperty("FooP");
-            Assert.That(foot,Is.EqualTo(typeof(Foo)));
+            Assert.That(foot, Is.EqualTo(typeof(Foo)));
         }
+
         [Test]
         public void TestFooPIsIFoo()
         {
@@ -46,6 +51,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
             Type foot = factory.TypeForProperty("FooP");
             Assert.That(foot, Is.EqualTo(typeof(IFoo)));
         }
+
         [Test]
         public void TestImplementationAttribute()
         {
@@ -54,6 +60,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
             Type foot = factory.ImplementationTypeForProperty("FooP");
             Assert.That(foot, Is.EqualTo(typeof(Foo)));
         }
+
         [Test]
         public void TestImplementationTypeWorksWithNoAttribute()
         {
@@ -62,6 +69,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
             Type foot = factory.ImplementationTypeForProperty("FooP");
             Assert.That(foot, Is.EqualTo(typeof(Foo)));
         }
+
         [Test]
         public void TestDerivedFooP()
         {

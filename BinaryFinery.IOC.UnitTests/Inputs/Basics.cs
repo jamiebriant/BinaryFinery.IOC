@@ -1,4 +1,7 @@
-﻿using BinaryFinery.IOC.Runtime;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Meta;
 using BinaryFinery.IOC.UnitTests.Tests.Meta;
 
@@ -6,33 +9,28 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
 {
     public interface IFoo
     {
-
     }
 
     public class Foo : IFoo
     {
-
     }
 
     public class FooToo : Foo
     {
-
     }
 
     public class OtherFoo : IFoo
     {
-
     }
 
 
     public interface IRootContext : IContext
     {
-        Foo FooP { get;  }
+        Foo FooP { get; }
     }
 
     public class Bar
     {
-
     }
 
     public interface IDodgyImplContext : IContext

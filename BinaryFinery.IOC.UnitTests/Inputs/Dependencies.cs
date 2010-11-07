@@ -1,10 +1,12 @@
-﻿using BinaryFinery.IOC.Runtime;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
 using BinaryFinery.IOC.Runtime.Meta;
 
 namespace BinaryFinery.IOC.UnitTests.Inputs
 {
-
     public interface IDeps
     {
         Foo Myfoo { get; }
@@ -14,7 +16,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         private readonly Foo myfoo;
 
-        public Deps( Foo myfoo)
+        public Deps(Foo myfoo)
         {
             this.myfoo = myfoo;
         }
@@ -29,7 +31,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         private readonly IDeps deps;
 
-        public FooDep( IDeps deps)
+        public FooDep(IDeps deps)
         {
             this.deps = deps;
         }
@@ -51,6 +53,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         [Implementation(typeof(Foo))]
         IFoo FooP { get; }
+
         [Implementation(typeof(Deps))]
         IDeps DepsP { get; }
     }
@@ -97,6 +100,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         [Implementation(typeof(Foo))]
         IFoo FooP { get; }
+
         [Implementation(typeof(Deps2))]
         IDeps DepsP { get; }
     }
@@ -105,6 +109,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         [Implementation(typeof(Foo))]
         IFoo FooP { get; }
+
         [Implementation(typeof(Deps2a))]
         IDeps DepsP { get; }
     }
@@ -113,6 +118,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         [Implementation(typeof(Foo))]
         IFoo FooP { get; }
+
         [Implementation(typeof(DepsAttributed))]
         IDeps DepsP { get; }
     }
@@ -121,6 +127,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         [Implementation(typeof(FooDep))]
         IFoo FooP { get; }
+
         [Implementation(typeof(Deps))]
         IDeps DepsP { get; }
     }
@@ -135,12 +142,13 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
 
         public IDeps DepsP
         {
-            get { return (IDeps) Factory.ObjectForProperty("DepsP"); ; }
+            get { return (IDeps) Factory.ObjectForProperty("DepsP"); }
         }
     }
 
-    public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2, IDependencyTestContext2a, IDependencyTestContext, IDependencyTestCyclic
+    public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed,
+                                            IDependencyTestContext2, IDependencyTestContext2a, IDependencyTestContext,
+                                            IDependencyTestCyclic
     {
     }
-
 }

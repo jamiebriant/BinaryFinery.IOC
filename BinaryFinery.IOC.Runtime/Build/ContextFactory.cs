@@ -1,4 +1,7 @@
-﻿using System;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using BinaryFinery.IOC.Runtime.Meta;
@@ -11,14 +14,14 @@ namespace BinaryFinery.IOC.Runtime.Build
         Type TypeForProperty(string foop);
         Type ImplementationTypeForProperty(string property);
         object ObjectForProperty(string propertyName);
-        TContext Create<TContext>() where TContext : class, IContext
-;
+        TContext Create<TContext>() where TContext : class, IContext;
     }
 
 
     public class BaseContextImpl : IContext
     {
         private IContextFactory factory;
+
         internal void SetFactory(IContextFactory factory)
         {
             this.factory = factory;
@@ -32,10 +35,10 @@ namespace BinaryFinery.IOC.Runtime.Build
 
     internal class ContextFactory : IContextFactory
     {
-        private Type contextType;
+        private readonly Type contextType;
         private readonly Type custom;
-        private Dictionary<string, object> singletons = new Dictionary<string, object>();
-        private Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
+        private readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
+        private readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
 
         public ContextFactory(Type contextType, Type custom)
         {
@@ -61,7 +64,7 @@ namespace BinaryFinery.IOC.Runtime.Build
         public Type ImplementationTypeForProperty(string property)
         {
             var info = contextType.GetProperty(property);
-            var attrs = info.GetCustomAttributes(typeof(ImplementationAttribute),true);
+            var attrs = info.GetCustomAttributes(typeof(ImplementationAttribute), true);
             Type propertyType = info.PropertyType;
             if (attrs.Length == 0)
                 return propertyType;
@@ -78,13 +81,13 @@ namespace BinaryFinery.IOC.Runtime.Build
                 var test = iface.GetProperty(property);
                 if (test != null)
                 {
-                    var attrs2 = test.GetCustomAttributes(typeof (ImplementationAttribute), false);
+                    var attrs2 = test.GetCustomAttributes(typeof(ImplementationAttribute), false);
                     if (attrs2.Length == 0)
                         continue;
                     ImplementationAttribute attr2 = (ImplementationAttribute) attrs2[0];
                     if (!attr2.Type.IsAssignableFrom(type))
                     {
-                        throw new ImplementationsMismatchException(contextType,type,attr2.Type,iface);
+                        throw new ImplementationsMismatchException(contextType, type, attr2.Type, iface);
                     }
                 }
             }
@@ -98,7 +101,7 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 return rv;
             }
-            Dictionary<Type,object> objects = new Dictionary<Type, object>();
+            Dictionary<Type, object> objects = new Dictionary<Type, object>();
 
             Type type = ImplementationTypeForProperty(propertyName);
             // find constructor
@@ -108,8 +111,8 @@ namespace BinaryFinery.IOC.Runtime.Build
             ConstructorInfo ctor = null;
             foreach (var constructorInfo in ctors)
             {
-                var inject = constructorInfo.GetCustomAttributes(typeof (InjectAttribute), false);
-                if (inject.Length>0)
+                var inject = constructorInfo.GetCustomAttributes(typeof(InjectAttribute), false);
+                if (inject.Length > 0)
                 {
                     ctor = constructorInfo;
                     break;
@@ -121,12 +124,12 @@ namespace BinaryFinery.IOC.Runtime.Build
             }
             var parameters = ctor.GetParameters();
             object[] args = new object[parameters.Length];
-            for (int i = 0; i < args.Length; ++i )
+            for (int i = 0; i < args.Length; ++i)
             {
                 args[i] = ObjectForType(parameters[i].ParameterType);
             }
 
-            rv = Activator.CreateInstance(type,args);
+            rv = Activator.CreateInstance(type, args);
             singletons[propertyName] = rv;
             singletonsByType[TypeForProperty(propertyName)] = type;
             return rv;
@@ -139,10 +142,12 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 return rv;
             }
-            var props = contextType.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
+            var props =
+                contextType.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
             foreach (var propertyInfo in props)
             {
-                if (propertyInfo.PropertyType == parameterType || parameterType.IsAssignableFrom(propertyInfo.PropertyType))
+                if (propertyInfo.PropertyType == parameterType ||
+                    parameterType.IsAssignableFrom(propertyInfo.PropertyType))
                 {
                     return ObjectForProperty(propertyInfo.Name);
                 }
@@ -155,11 +160,11 @@ namespace BinaryFinery.IOC.Runtime.Build
             return null;
         }
 
-        public TContext Create<TContext>() 
+        public TContext Create<TContext>()
             where TContext : class, IContext
         {
             object result = Activator.CreateInstance(custom);
-            BaseContextImpl impl = (BaseContextImpl)result;
+            BaseContextImpl impl = (BaseContextImpl) result;
             impl.SetFactory(this);
             TContext rv = (TContext) result;
             return rv;

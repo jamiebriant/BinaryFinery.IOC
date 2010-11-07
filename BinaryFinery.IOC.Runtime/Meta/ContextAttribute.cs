@@ -1,4 +1,7 @@
-﻿using System;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using System;
 
 namespace BinaryFinery.IOC.Runtime.Meta
 {
@@ -11,7 +14,7 @@ namespace BinaryFinery.IOC.Runtime.Meta
         {
         }
 
-        public ContextAttribute( Type parent)
+        public ContextAttribute(Type parent)
         {
             this.parent = parent;
         }

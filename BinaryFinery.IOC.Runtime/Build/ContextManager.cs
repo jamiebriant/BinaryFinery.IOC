@@ -1,6 +1,8 @@
-﻿using System;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BinaryFinery.IOC.Runtime.Build
 {
@@ -16,8 +18,7 @@ namespace BinaryFinery.IOC.Runtime.Build
 
     public class ContextManager
     {
-
-        Dictionary<Type,Type> customImplementations = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> customImplementations = new Dictionary<Type, Type>();
 
         public T Create<T>()
             where T : class, IContext

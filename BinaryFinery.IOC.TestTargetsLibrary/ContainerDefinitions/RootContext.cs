@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using System;
 using System.Reflection;
-using System.Text;
 using BinaryFinery.IOC.Runtime.Meta;
 
 namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
@@ -11,7 +12,7 @@ namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
     {
         ILog Logger { get; }
         IThreadServices ThreadServices { get; }
-        IFileServices FileServices { get;  }
+        IFileServices FileServices { get; }
     }
 
     [Context]
@@ -21,16 +22,14 @@ namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
         ILog Logger { get; }
 
         IThreadServices ThreadServices { get; }
-        
     }
 
     [Context(typeof(IOurRootContext))]
-    interface IAppContext
+    internal interface IAppContext
     {
-        
     }
 
-    class MyRootContext: IOurRootContext
+    internal class MyRootContext : IOurRootContext
     {
         private readonly IContextFactory factory;
 
@@ -39,7 +38,7 @@ namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
             this.factory = factory;
         }
 
-        ILog _Logger;
+        private ILog _Logger;
         private static IFactoryNode _Logger_Node;
 
         public ILog Logger
@@ -48,8 +47,8 @@ namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
             {
                 if (_Logger_Node == null)
                 {
-                    _Logger_Node = factory.CreateNode(typeof (IOurRootContext),
-                                                      typeof (IOurRootContext).GetProperty("Logger"));
+                    _Logger_Node = factory.CreateNode(typeof(IOurRootContext),
+                                                      typeof(IOurRootContext).GetProperty("Logger"));
                 }
                 return _Logger_Node.Create<ILog>(factory);
             }
@@ -66,7 +65,7 @@ namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
         }
     }
 
-    internal interface IFactoryNode 
+    internal interface IFactoryNode
     {
         T Create<T>(IContextFactory factory);
     }
@@ -77,11 +76,10 @@ namespace BinaryFinery.IOC.TestTargetsLibrary.ContainerDefinitions
     }
 
 
-
     public class MyLogger : ILog
     {
-        
     }
+
     public interface IFileServices
     {
     }

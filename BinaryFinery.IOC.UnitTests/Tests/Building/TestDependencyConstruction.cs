@@ -1,4 +1,7 @@
-﻿using BinaryFinery.IOC.Runtime.Build;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using BinaryFinery.IOC.Runtime.Build;
 using BinaryFinery.IOC.UnitTests.Inputs;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -16,7 +19,8 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2a));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContextAttributed));
+            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop),
+                                                   typeof(IDependencyTestContextAttributed));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestCyclic));
         }
 
@@ -25,8 +29,9 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         {
             var context = CM.Create<IDependencyTestContext>();
             var result = context.DepsP;
-            Assert.That(result,Is.Not.Null);
+            Assert.That(result, Is.Not.Null);
         }
+
         [Test]
         public void DependenciesReallyInjectedViaConstructor()
         {
@@ -43,6 +48,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             var result = context.DepsP;
             Assert.That(result.Myfoo, Is.Null);
         }
+
         [Test]
         public void FirstPublicConstructorIsCalledByDefault2a()
         {
@@ -50,8 +56,9 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             var result = context.DepsP;
             var foo = context.FooP;
             Assert.That(result.Myfoo, Is.SameAs(foo));
-            Assert.IsInstanceOfType(typeof(Deps2a),result);
+            Assert.IsInstanceOfType(typeof(Deps2a), result);
         }
+
         [Test]
         public void AttributedInjectorIsUsed()
         {
@@ -62,6 +69,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             Assert.That(result.Myfoo, Is.Not.SameAs(foo));
             Assert.IsInstanceOfType(typeof(DepsAttributed), result);
         }
+
         [Test]
         [Ignore]
         [ExpectedException(typeof(CyclicDependencyException))]

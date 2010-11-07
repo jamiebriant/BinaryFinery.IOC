@@ -1,4 +1,7 @@
-﻿using BinaryFinery.IOC.Runtime;
+﻿// 
+// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// 
+using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
 using BinaryFinery.IOC.UnitTests.Inputs;
 using NUnit.Framework;
@@ -8,11 +11,11 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 {
     public interface ITestContext : IContext
     {
-        Foo Foo { get;  }
+        Foo Foo { get; }
     }
 
 
-    public class TestContextImpl : BaseContextImpl,  ITestContext
+    public class TestContextImpl : BaseContextImpl, ITestContext
     {
         public Foo Foo
         {
@@ -43,15 +46,16 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         {
             ITestContext context = CM.Create<ITestContext>();
             IFoo foo = context.Foo;
-            Assert.IsInstanceOfType(typeof(Foo),foo);
+            Assert.IsInstanceOfType(typeof(Foo), foo);
         }
+
         [Test]
         public void CreatedFooIsSingleton()
         {
             ITestContext context = CM.Create<ITestContext>();
             IFoo foo = context.Foo;
             IFoo foo2 = context.Foo;
-            Assert.That(foo,Is.SameAs(foo2));
+            Assert.That(foo, Is.SameAs(foo2));
         }
     }
 }

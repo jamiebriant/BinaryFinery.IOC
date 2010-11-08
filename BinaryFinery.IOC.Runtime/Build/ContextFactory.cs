@@ -8,39 +8,11 @@ using BinaryFinery.IOC.Runtime.Meta;
 
 namespace BinaryFinery.IOC.Runtime.Build
 {
-    public interface IContextFactory
-    {
-        Type ContextType { get; }
-        Type TypeForProperty(string foop);
-        Type ImplementationTypeForProperty(string property);
-        object ObjectForProperty(string propertyName);
-        TContext Create<TContext>() where TContext : class, IContext;
-    }
-
-
-    public class BaseContextImpl : IContext
-    {
-        private IContextFactory factory;
-
-        internal void SetFactory(IContextFactory factory)
-        {
-            this.factory = factory;
-        }
-
-        protected IContextFactory Factory
-        {
-            get { return factory; }
-        }
-    }
-
     internal class ContextFactory : IContextFactory
     {
         private readonly Type contextType;
         private readonly Type custom;
         internal readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
-        internal readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
-
-        private Queue<string> currentRun = null;
 
         public ContextFactory(Type contextType, Type custom)
         {
@@ -73,44 +45,60 @@ namespace BinaryFinery.IOC.Runtime.Build
             }
             return null;
         }
+        
+        public Type ImplementationTypeForPropertyForTesting(string property)
+        {
+            var cn = ImplementationTypeForProperty(property);
+            return cn == null ? null : cn.ImplementationType;
+        }
 
-        public Type ImplementationTypeForProperty(string property)
+
+        private ConstructionNode ImplementationTypeForProperty(string property)
         {
             // find the most recent declaration.
 
             var ti = contextType;
             Type[] ifaces = contextType.GetInterfaces();
             int i = 0;
-            Type guess = null;
             Type imp = null;
+            PropertyInfo impPropertyInfo = null;
             Type impContext = null;
+
+            // This is combining the search with the check.
+
             while (true)
             {
                 var info = ti.GetProperty(property);
                 if (info != null)
                 {
-                    if (guess == null)
-                    {
-                        guess = info.PropertyType;
-                    }
+                    Type pt = info.PropertyType;
+                    Type timp = null;
                     var attrs2 = info.GetCustomAttributes(typeof(ImplementationAttribute), true);
                     if (attrs2.Length > 0)
                     {
-                        var attr2 = (ImplementationAttribute) attrs2[0];
-                        Type timp = attr2.Type;
+                        var attr2 = (ImplementationAttribute)attrs2[0];
+                        timp = attr2.Type;
+                    }
+                    else if (!info.PropertyType.IsInterface)
+                    {
+                        timp = pt;
+                    }
+                    if (timp != null)
+                    {
                         if (imp == null)
                         {
                             imp = timp;
                             impContext = ti;
-                            if (!guess.IsAssignableFrom(imp))
-                            {
-                                throw new ImplementationInterfaceMismatchException(contextType, imp, guess, ti);
-                            }
+                            impPropertyInfo = info;
                         }
                         else
                         {
                             if (!timp.IsAssignableFrom(imp))
                                 throw new ImplementationsMismatchException(contextType, imp, impContext, timp, ti);
+                        }
+                        if ( info.PropertyType.IsInterface &&  !pt.IsAssignableFrom(imp))
+                        {
+                            throw new ImplementationInterfaceMismatchException(contextType, imp, pt, ti);
                         }
                     }
                 }
@@ -119,16 +107,68 @@ namespace BinaryFinery.IOC.Runtime.Build
                 ti = ifaces[i];
                 ++i;
             }
-            return imp ?? guess;
+            return new ConstructionNode(impPropertyInfo,impContext,imp);
         }
+
+        class State
+        {
+            public readonly Stack<String> ConstructorStack = new Stack<String>();
+            public readonly Queue<ConstructionNode> ConstructedObjectsWaitingPropertyInjection = new Queue<ConstructionNode>();
+            // getting ahead of myself. public Queue<object> ConstructedObjectsWaitingBuildFinalized = new Queue<object>();
+        }
+
+        class ConstructionNode
+        {
+            public ConstructionNode(PropertyInfo implementationProperty, Type implementationContext, Type imp)
+            {
+                ImplementationProperty = implementationProperty;
+                ImplementationContext = implementationContext;
+                ImplementationType = imp;
+            }
+
+            public object Built;
+            public PropertyInfo ImplementationProperty; // may be just a property with a concrete type (which is bad, ok)
+            public readonly Type ImplementationType;
+            public Type ImplementationContext; // where we found the implementation.
+        }
+
+        private State currentState;
 
         public object ObjectForProperty(string propertyName)
         {
-            if (currentRun == null)
+            if (currentState == null)
             {
-                currentRun = new Queue<String>();
+                currentState = new State();
             }
-            if (currentRun.Contains(propertyName))
+            object rv = InternalObjectForProperty(propertyName);
+            // Now we must go thru all the created objects, and initialize their properties.
+            while (currentState.ConstructedObjectsWaitingPropertyInjection.Count>0)
+            {
+                ConstructionNode cn = currentState.ConstructedObjectsWaitingPropertyInjection.Dequeue();
+                ResolvePropertyDependencies(cn);
+            }
+
+            return rv;
+        }
+
+        private void ResolvePropertyDependencies(ConstructionNode cn)
+        {
+            Type t = cn.ImplementationType;
+            var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            foreach (var propertyInfo in props)
+            {
+                if ( propertyInfo.GetCustomAttributes(typeof(InjectAttribute),true).Length>0)
+                {
+                    PropertyInfo pi = PropertyForType(propertyInfo.PropertyType, cn);
+                    object o = InternalObjectForProperty(pi.Name);
+                    propertyInfo.SetValue(cn.Built, o, null);
+                }
+            }
+        }
+
+        private object InternalObjectForProperty(string propertyName)
+        {
+            if (currentState.ConstructorStack.Contains(propertyName))
             {
                 throw new CyclicDependencyException(this.contextType);
             }
@@ -138,55 +178,39 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 return rv;
             }
-            Type type = ImplementationTypeForProperty(propertyName);
+            ConstructionNode node = ImplementationTypeForProperty(propertyName);
             try
             {
-                currentRun.Enqueue(propertyName);
+                currentState.ConstructorStack.Push(propertyName);
                 // find constructor
-                ConstructorInfo ctor = GetCtor(type);
+                ConstructorInfo ctor = GetCtor(node.ImplementationType);
                 var parameters = ctor.GetParameters();
                 object[] args = new object[parameters.Length];
                 for (int i = 0; i < args.Length; ++i)
                 {
-                    PropertyInfo pi = PropertyForType(parameters[i].ParameterType, propertyName);
-                    args[i] = ObjectForProperty(pi.Name);
+                    PropertyInfo pi = PropertyForType(parameters[i].ParameterType, node);
+                    args[i] = InternalObjectForProperty(pi.Name);
                 }
 
-                rv = Activator.CreateInstance(type, args);
+                rv = Activator.CreateInstance(node.ImplementationType, args);
                 singletons[propertyName] = rv;
-                singletonsByType[TypeForProperty(propertyName)] = type;
+                node.Built = rv;
+                currentState.ConstructedObjectsWaitingPropertyInjection.Enqueue(node);
                 return rv;
             }
             finally
             {
-                currentRun.Dequeue();
-                if (currentRun.Count == 0) currentRun = null;
+                currentState.ConstructorStack.Pop();
             }
         }
 
-        private PropertyInfo PropertyForType(Type parameterType, string dependentProperty)
+        private PropertyInfo PropertyForType(Type parameterType, ConstructionNode node)
         {
-            var ti = contextType;
-            Type[] ifaces = contextType.GetInterfaces();
-            int i = ifaces.Length;
-            while (i >= 0)
-            {
-                --i;
-                Type iface = i >= 0 ? ifaces[i] : contextType;
-                var pi = iface.GetProperty(dependentProperty);
-                if (pi != null)
-                {
-                    if (!pi.PropertyType.IsInterface ||
-                        pi.GetCustomAttributes(typeof(ImplementationAttribute), false).Length > 0)
-                    {
-                        // found a possible match.
-                        var dt = PropertyForType(parameterType, iface);
-                        if (dt != null)
-                            return dt;
-                    }
-                }
-            }
-            throw new PropertyDependencyResolutionException(contextType, dependentProperty, parameterType);
+            PropertyInfo pi = PropertyForType(parameterType, node.ImplementationContext);
+            if (pi==null)
+                throw new PropertyDependencyResolutionException(contextType, node.ImplementationProperty, parameterType);
+            return pi;
+
         }
 
         private PropertyInfo PropertyForType(Type parameterType, Type startingContext)
@@ -207,8 +231,8 @@ namespace BinaryFinery.IOC.Runtime.Build
                     {
                         return propertyInfo;
                     }
-                    Type impType = ImplementationTypeForProperty(propertyInfo.Name);
-                    if (impType == parameterType || parameterType.IsAssignableFrom(impType))
+                    ConstructionNode node = ImplementationTypeForProperty(propertyInfo.Name);
+                    if (node.ImplementationType == parameterType || parameterType.IsAssignableFrom(node.ImplementationType))
                     {
                         return propertyInfo;
                     }
@@ -250,27 +274,6 @@ namespace BinaryFinery.IOC.Runtime.Build
             impl.SetFactory(this);
             TContext rv = (TContext) result;
             return rv;
-        }
-    }
-
-    public class PropertyDependencyResolutionException : BuildException
-    {
-        private readonly string dependentProperty;
-        private readonly Type parameterType;
-
-        public PropertyDependencyResolutionException(Type contextType, string dependentProperty, Type parameterType)
-            : base(contextType)
-        {
-            this.dependentProperty = dependentProperty;
-            this.parameterType = parameterType;
-        }
-
-        public override string ToString()
-        {
-            return
-                string.Format(
-                    "The system attempted to find a property that provides type {2} that appears at or below an implementation attribute for type {1}. The error follows:\n{0} DependentProperty: {1}\n ParameterType: {2}",
-                    base.ToString(), dependentProperty, parameterType);
         }
     }
 }

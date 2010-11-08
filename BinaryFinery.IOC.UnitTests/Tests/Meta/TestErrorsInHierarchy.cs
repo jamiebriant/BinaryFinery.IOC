@@ -19,7 +19,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         {
             ContextManager cf = ContextSystem.Manager;
             IContextFactory factory = cf.GetFactory<IDodgyImplContext>();
-            Type foot = factory.ImplementationTypeForProperty("FooP");
+            Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
             {
                 ContextManager cf = ContextSystem.Manager;
                 IContextFactory factory = cf.GetFactory<IDodgyImplContext>();
-                Type foot = factory.ImplementationTypeForProperty("FooP");
+                Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             }
             catch (ImplementationInterfaceMismatchException e)
             {
@@ -47,7 +47,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         {
             ContextManager cf = ContextSystem.Manager;
             IContextFactory factory = cf.GetFactory<IDodgyDerivedImplementationContext>();
-            Type foot = factory.ImplementationTypeForProperty("FooP");
+            Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
         }
 
         #region Quick Assumption Test
@@ -88,7 +88,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
             {
                 ContextManager cf = ContextSystem.Manager;
                 IContextFactory factory = cf.GetFactory<IDodgyDerivedImplementationContext>();
-                Type foot = factory.ImplementationTypeForProperty("FooP");
+                Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             }
             catch (ImplementationsMismatchException e)
             {

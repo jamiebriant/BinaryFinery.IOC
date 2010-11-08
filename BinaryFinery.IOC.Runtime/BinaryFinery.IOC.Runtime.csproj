@@ -40,9 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Build\BaseContextImpl.cs" />
     <Compile Include="Build\ContextFactory.cs" />
     <Compile Include="Build\ContextManager.cs" />
+    <Compile Include="Build\IContextFactory.cs" />
     <Compile Include="Build\ImplementationInterfaceMismatchException.cs" />
+    <Compile Include="Build\PropertyDependencyResolutionException.cs" />
     <Compile Include="IContext.cs" />
     <Compile Include="Meta\ContextAttribute.cs" />
     <Compile Include="Meta\ImplementationAttribute.cs" />

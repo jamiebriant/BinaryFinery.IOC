@@ -81,7 +81,6 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         }
 
         [Test]
-        [Ignore]
         public void InjectionViaPropertyWorks()
         {
             var context = CM.Create<IDependencyTestProperyInjection>();

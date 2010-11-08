@@ -103,6 +103,8 @@ A nice shortcut is that if you have specializations of IDependencyTestBaseContex
 slap Implementation attributes on existing ones), then you can easily reuse the custom implementation like so:
 
     public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2 {}
+	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContextAttributed));
+	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2));
 
 
 Future version will generate the context at runtime using Emit, or tools will create this class for you automatically for use with MonoTouch.

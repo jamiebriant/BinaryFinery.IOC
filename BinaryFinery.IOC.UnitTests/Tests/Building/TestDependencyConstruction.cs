@@ -23,6 +23,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
                                                    typeof(IDependencyTestContextAttributed));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestCyclic));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection));
+            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection2));
         }
 
         [Test]
@@ -87,6 +88,21 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             var result = context.DepsP;
             var foo = context.FooP;
             Assert.That(result.Myfoo, Is.SameAs(foo));
+        }
+
+        [Test]
+        public void InjectionViaPropertyWorksEvenWhenPropertyOverridden()
+        {
+            var context = CM.Create<IDependencyTestProperyInjection2>();
+            var result = context.DepsP;
+            var foo = context.FooP;
+            Assert.That(foo, Is.Not.Null);
+            Assert.That(result.Myfoo, Is.Not.Null, "MyFoo not injected");
+            Assert.That(result.Myfoo, Is.SameAs(foo));
+            DepProp2 dp = (DepProp2) result;
+            Assert.That(dp.Foo, Is.Null);
+            Assert.That(dp.Foo2, Is.Not.Null);
+            Assert.That(dp.Foo2, Is.SameAs(result.Myfoo));
         }
 
     }

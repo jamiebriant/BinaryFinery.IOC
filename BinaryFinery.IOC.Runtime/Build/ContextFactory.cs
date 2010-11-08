@@ -154,10 +154,23 @@ namespace BinaryFinery.IOC.Runtime.Build
         private void ResolvePropertyDependencies(ConstructionNode cn)
         {
             Type t = cn.ImplementationType;
-            var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            //var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var propertyInfo in props)
             {
-                if ( propertyInfo.GetCustomAttributes(typeof(InjectAttribute),true).Length>0)
+                /* 
+                 * http://msdn.microsoft.com/en-US/library/system.reflection.propertyinfo(v=VS.80).aspx
+                 * "Calling ICustomAttributeProvider.GetCustomAttributes on PropertyInfo when the inherit parameter
+                 * of GetCustomAttributes is true does not walk the type hierarchy. Use System.Attribute to inherit
+                 * custom attributes."
+                 * 
+                 * So this doesnt work:
+                 * 
+                 * object[] customAttributes = propertyInfo.GetCustomAttributes(typeof(InjectAttribute), true);
+                 */
+
+                object[] customAttributes = Attribute.GetCustomAttributes(propertyInfo,typeof(InjectAttribute), true);
+                if ( customAttributes.Length>0)
                 {
                     PropertyInfo pi = PropertyForType(propertyInfo.PropertyType, cn);
                     object o = InternalObjectForProperty(pi.Name);

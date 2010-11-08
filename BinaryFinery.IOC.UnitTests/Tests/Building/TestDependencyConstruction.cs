@@ -24,6 +24,8 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestCyclic));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection2));
+            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestMethodInjection));
+            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestMethodInjection2));
         }
 
         [Test]
@@ -103,6 +105,29 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             Assert.That(dp.Foo, Is.Null);
             Assert.That(dp.Foo2, Is.Not.Null);
             Assert.That(dp.Foo2, Is.SameAs(result.Myfoo));
+        }
+
+        [Test]
+        public void InjectionViaMethodWorks()
+        {
+            var context = CM.Create<IDependencyTestMethodInjection>();
+            var result = context.DepsP;
+            var foo = context.FooP;
+            Assert.That(result.Myfoo, Is.SameAs(foo));
+        }
+
+        [Test]
+        public void InjectionViaMethodWorksEvenWhenMethodOverriden()
+        {
+            var context = CM.Create<IDependencyTestMethodInjection2>();
+            var result = context.DepsP;
+            var foo = context.FooP;
+            Assert.That(foo, Is.Not.Null);
+            Assert.That(result.Myfoo, Is.Null, "MyFoo got injected somehow");
+            DepMethod2 dp = (DepMethod2)result;
+            Assert.That(dp.Foo, Is.Null);
+            Assert.That(dp.Foo2, Is.Not.Null);
+            Assert.That(dp.Foo2, Is.SameAs(foo));
         }
 
     }

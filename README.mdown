@@ -14,14 +14,15 @@ What's in the current version:
 1. Singleton generation.
 2. Object injection using constructors only. Which is actually a very bad habit so don't do it.
 3. Detects cyclic dependencies (throws exception)
+4. Injection using properties. Add an [Inject] attribute.
 
 New:
 
-4. Injection using properties. Add an [Inject] attribute.
+1. Injection using methods. Add an [Inject] attribute.
+
 
 Future versions:
 
-1. Injection using methods.
 2. Context hiearchies.
 3. Post-construction events / methods.
 

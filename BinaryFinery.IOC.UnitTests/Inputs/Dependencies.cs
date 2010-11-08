@@ -176,6 +176,13 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
         }
     }
 
+    /************************************************************************************************
+     * 
+     * METHOD INJECTION
+     * 
+     */
+
+
     public class DepProp2 : DepProp
     {
         private Foo foo2;
@@ -203,10 +210,73 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
 
     }
 
+    public class DepMethod : IDeps
+    {
+        private Foo foo;
+
+        public Foo Myfoo
+        {
+            get { return Foo; }
+        }
+
+        public Foo Foo
+        {
+            get { return foo; }
+        }
+
+        [Inject]
+        virtual public bool SetFoo(Foo foo)
+        {
+            this.foo = foo;
+            return false;
+        }
+    }
+
+    public interface IDependencyTestMethodInjection : IDependencyTestBaseContext
+    {
+        [Implementation(typeof(Foo))]
+        IFoo FooP { get; }
+
+        [Implementation(typeof(DepMethod))]
+        IDeps DepsP { get; }
+
+    }
+
+    public class DepMethod2 : DepMethod
+    {
+        private Foo foo2;
+
+        public Foo Foo2
+        {
+            get { return foo2; }
+        }
+
+        public override bool SetFoo(Foo foo)
+        {
+            this.foo2 = foo;
+            return false;
+        }
+    }
+    public interface IDependencyTestMethodInjection2 : IDependencyTestBaseContext
+    {
+        [Implementation(typeof(Foo))]
+        IFoo FooP { get; }
+
+        [Implementation(typeof(DepMethod2))]
+        IDeps DepsP { get; }
+
+    }
+
+    /************************************************************************************************
+     * The manual context class.
+     */
+
+
+
 
     public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestProperyInjection2,
                                             IDependencyTestContext2, IDependencyTestContext2a, IDependencyTestContext,
-                                            IDependencyTestCyclic, IDependencyTestProperyInjection
+                                            IDependencyTestCyclic, IDependencyTestProperyInjection, IDependencyTestMethodInjection, IDependencyTestMethodInjection2
     {
     }
 }

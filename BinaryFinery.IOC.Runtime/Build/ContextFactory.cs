@@ -146,9 +146,35 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 ConstructionNode cn = currentState.ConstructedObjectsWaitingPropertyInjection.Dequeue();
                 ResolvePropertyDependencies(cn);
+                ResolveMethodDependencies(cn);
             }
 
             return rv;
+        }
+
+        private void ResolveMethodDependencies(ConstructionNode cn)
+        {
+            Type t = cn.ImplementationType;
+            var methods = t.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var methodInfo in methods)
+            {
+                var parameters = methodInfo.GetParameters();
+
+                if (parameters.Length>0)
+                {
+                    object[] customAttributes = Attribute.GetCustomAttributes(methodInfo, typeof(InjectAttribute), true);
+                    if (customAttributes.Length > 0)
+                    {
+                        object[] args = new object[parameters.Length];
+                        for (int i = 0; i < args.Length; ++i)
+                        {
+                            PropertyInfo pi = PropertyForType(parameters[i].ParameterType, cn);
+                            args[i] = InternalObjectForProperty(pi.Name);
+                        }
+                        methodInfo.Invoke(cn.Built, args);
+                    }
+                }                
+            }
         }
 
         private void ResolvePropertyDependencies(ConstructionNode cn)

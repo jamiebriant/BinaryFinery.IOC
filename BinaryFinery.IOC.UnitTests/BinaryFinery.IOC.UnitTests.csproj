@@ -48,6 +48,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Inputs\Basics.cs" />
     <Compile Include="Tests\Building\TestCompoundContexts.cs" />
+    <Compile Include="Tests\Building\TestContextManagement.cs" />
     <Compile Include="Tests\Building\TestDependencyConstruction.cs" />
     <Compile Include="Tests\Building\TestNamedDependencies.cs" />
     <Compile Include="Tests\Meta\TestComprehension.cs" />

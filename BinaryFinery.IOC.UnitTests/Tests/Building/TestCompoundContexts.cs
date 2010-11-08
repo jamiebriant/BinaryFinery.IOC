@@ -13,9 +13,9 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         public void Setup()
         {
             CM = ContextSystem.Manager;
-            CM.RegisterCustomContextImplementation(typeof(CompoundContextImp), typeof(ICompoundContext));
-            CM.RegisterCustomContextImplementation(typeof(JoinContextImp), typeof(IJoinContext));
-            CM.RegisterCustomContextImplementation(typeof(WorkingJoinContextImp), typeof(IWorkingJoinContext));
+            CM.RegisterCustomContextImplementation(typeof(CompoundContextImp));
+            CM.RegisterCustomContextImplementation(typeof(JoinContextImp));
+            CM.RegisterCustomContextImplementation(typeof(WorkingJoinContextImp));
         }
 
         [Test]

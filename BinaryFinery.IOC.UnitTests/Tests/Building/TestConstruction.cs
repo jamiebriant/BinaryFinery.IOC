@@ -31,7 +31,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         public void Setup()
         {
             CM = ContextSystem.Manager;
-            CM.RegisterCustomContextImplementation(typeof(TestContextImpl), typeof(ITestContext));
+            CM.RegisterCustomContextImplementation(typeof(TestContextImpl));
         }
 
         [Test]

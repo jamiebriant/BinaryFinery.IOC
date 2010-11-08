@@ -16,16 +16,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         public void Setup()
         {
             CM = ContextSystem.Manager;
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2a));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop),
-                                                   typeof(IDependencyTestContextAttributed));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestCyclic));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection2));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestMethodInjection));
-            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestMethodInjection2));
+            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop));
         }
 
         [Test]

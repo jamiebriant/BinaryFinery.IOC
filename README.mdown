@@ -15,11 +15,12 @@ What's in the current version:
 2. Object injection using constructors only. Which is actually a very bad habit so don't do it.
 3. Detects cyclic dependencies (throws exception)
 4. Injection using properties. Add an [Inject] attribute.
+1. Injection using methods. Add an [Inject] attribute.
 
 New:
 
-1. Injection using methods. Add an [Inject] attribute.
-
+1. Hand-built proxy registration simplified. Registering the concrete type registers all its interfaces.
+2. **Note:** By the order of YAGNI I removed the projects from the solution that aren't ready/used yet.
 
 Future versions:
 
@@ -103,7 +104,9 @@ You must also manually register this class with the ContextManager:
 A nice shortcut is that if you have specializations of IDependencyTestBaseContext that dont add any more properties (i.e. they just
 slap Implementation attributes on existing ones), then you can easily reuse the custom implementation like so:
 
-    public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2 {}
+    public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2
+	{
+	}
 	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContextAttributed));
 	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2));
 

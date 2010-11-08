@@ -15,9 +15,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         public void Setup()
         {
             CM = ContextSystem.Manager;
-            CM.RegisterCustomContextImplementation(typeof(NamedDependenciesContextImpl), typeof(INamedDependenciesContext2));
-            CM.RegisterCustomContextImplementation(typeof(NamedDependenciesContextImpl), typeof(INamedDependenciesContext));
-            CM.RegisterCustomContextImplementation(typeof(NamedDependenciesContextImpl), typeof(INamedDependenciesContext2a));
+            CM.RegisterCustomContextImplementation(typeof(NamedDependenciesContextImpl));
         }
 
         [Test]

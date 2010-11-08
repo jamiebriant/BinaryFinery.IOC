@@ -14,7 +14,14 @@ namespace BinaryFinery.IOC.Runtime.Build
         {
             get { return manager; }
         }
+
+        public static ContextManager ManagerForTesting
+        {
+            get { return new ContextManager(); }
+        }
+
     }
+
 
     public class ContextManager
     {
@@ -37,13 +44,13 @@ namespace BinaryFinery.IOC.Runtime.Build
             else return new ContextFactory(typeof(T));
         }
 
-        public void RegisterCustomContextImplementation(Type implementation, Type context)
+        public void RegisterCustomContextImplementation(Type implementation)
         {
-//            Type current;
-//            if (customImplementations.TryGetValue(context, out current))
-//            {
-//            }
-            customImplementations[context] = implementation;
+            var ifaces = implementation.GetInterfaces();
+            foreach (var iface in ifaces)
+            {
+                customImplementations[iface] = implementation;
+            }
         }
     }
 }

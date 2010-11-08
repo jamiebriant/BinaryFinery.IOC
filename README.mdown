@@ -139,6 +139,40 @@ property B, not Foo from property A. So the simple type-only resolution from v 1
 where property X was initially declared - i.e. the most general interface. In the case where X is actually compatibly defined in more than one "base" interface, the behavior
 is "not defined", i.e. it will use the first one it finds, and this can depending on circumstance, build version, optization etc. 
 
+### Depdendency Fragments
+
+    public interface IFragmentedContext : IContext
+    {
+        [Implementation(typeof(DontCareDeps))]
+        IDontCareDeps Deps { get; }
+    }
+
+A "dependency fragment" is one where an Implementation specifies a class whose dependencies cannot be resolved. In the above case, the concrete implementation DontCareDeps requires
+an IFoo in its constructor. The IFragmentedContext does not declare an IFoo. It is considered broken. The dependency must be resolvable in the base contexts of that 
+interface. The following is *not* enough:
+
+    public interface IMissingPieceContext : IContext
+    {
+        [Implementation(typeof(OtherFoo))]
+        IFoo B { get; }
+    }
+
+    public interface IJoinContext : IFragmentedContext, IMissingPieceContext
+    {
+        
+    }
+
+The IJoinContext does have an IFoo (from IMissingPieceContext), but it will not be used to resolve the dependency in IFragmentedContext. This is by design to reduce fragile behavior.
+
+However, a fragmented interface can be repaired later, by redoing the implentation in a context which can resolve the dependency (directly or indirectly). Such as:
+
+    public interface IWorkingJoinContext : IFragmentedContext, IMissingPieceContext
+    {
+        [Implementation(typeof(DontCareDeps))]
+        IDontCareDeps Deps { get; }
+    }
+
+
 
 Background
 ----------

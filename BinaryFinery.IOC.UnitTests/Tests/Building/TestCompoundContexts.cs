@@ -14,6 +14,8 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         {
             CM = ContextSystem.Manager;
             CM.RegisterCustomContextImplementation(typeof(CompoundContextImp), typeof(ICompoundContext));
+            CM.RegisterCustomContextImplementation(typeof(JoinContextImp), typeof(IJoinContext));
+            CM.RegisterCustomContextImplementation(typeof(WorkingJoinContextImp), typeof(IWorkingJoinContext));
         }
 
         [Test]
@@ -33,6 +35,22 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             var context = CM.Create<ICompoundContext>();
             var d = context.Deps;
             Assert.IsInstanceOfType(typeof(OtherFoo),d.Myfoo);
+        }
+
+        [Test]
+        [ExpectedException(typeof(PropertyDependencyResolutionException))]
+        public void FragmentedInterfacesAreNotAllowed()
+        {
+            var context = CM.Create<IJoinContext>();
+            var d = context.Deps;
+            Assert.Fail("Should not get here.");
+        }
+        [Test]
+        public void FragmentedInterfacesAreAllowedIfExplicitlyOverriden()
+        {
+            var context = CM.Create<IWorkingJoinContext>();
+            var d = context.Deps;
+            Assert.That(d, Is.Not.Null);
         }
 
     }

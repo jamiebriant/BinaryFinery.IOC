@@ -76,7 +76,6 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public Type ImplementationTypeForProperty(string property)
         {
-
             // find the most recent declaration.
 
             var ti = contextType;
@@ -85,10 +84,10 @@ namespace BinaryFinery.IOC.Runtime.Build
             Type guess = null;
             Type imp = null;
             Type impContext = null;
-            while ( i < ifaces.Length)
+            while (true)
             {
                 var info = ti.GetProperty(property);
-                if (info != null )
+                if (info != null)
                 {
                     if (guess == null)
                     {
@@ -105,16 +104,18 @@ namespace BinaryFinery.IOC.Runtime.Build
                             impContext = ti;
                             if (!guess.IsAssignableFrom(imp))
                             {
-                                throw new ImplementationInterfaceMismatchException(contextType, imp, guess,ti);
+                                throw new ImplementationInterfaceMismatchException(contextType, imp, guess, ti);
                             }
                         }
                         else
                         {
-                            if ( !timp.IsAssignableFrom(imp))
+                            if (!timp.IsAssignableFrom(imp))
                                 throw new ImplementationsMismatchException(contextType, imp, impContext, timp, ti);
                         }
                     }
                 }
+                if (i >= ifaces.Length)
+                    break;
                 ti = ifaces[i];
                 ++i;
             }
@@ -123,7 +124,7 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public object ObjectForProperty(string propertyName)
         {
-            if ( currentRun == null)
+            if (currentRun == null)
             {
                 currentRun = new Queue<String>();
             }
@@ -147,8 +148,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                 object[] args = new object[parameters.Length];
                 for (int i = 0; i < args.Length; ++i)
                 {
-                    PropertyInfo pi = PropertyForType(parameters[i].ParameterType,propertyName);
-
+                    PropertyInfo pi = PropertyForType(parameters[i].ParameterType, propertyName);
                     args[i] = ObjectForProperty(pi.Name);
                 }
 
@@ -172,11 +172,12 @@ namespace BinaryFinery.IOC.Runtime.Build
             while (i >= 0)
             {
                 --i;
-                Type iface = i >=0 ? ifaces[i] : contextType;
+                Type iface = i >= 0 ? ifaces[i] : contextType;
                 var pi = iface.GetProperty(dependentProperty);
                 if (pi != null)
                 {
-                    if (!pi.PropertyType.IsInterface || pi.GetCustomAttributes(typeof(ImplementationAttribute), false).Length>0)
+                    if (!pi.PropertyType.IsInterface ||
+                        pi.GetCustomAttributes(typeof(ImplementationAttribute), false).Length > 0)
                     {
                         // found a possible match.
                         var dt = PropertyForType(parameterType, iface);
@@ -185,26 +186,38 @@ namespace BinaryFinery.IOC.Runtime.Build
                     }
                 }
             }
-            return null;
+            throw new PropertyDependencyResolutionException(contextType, dependentProperty, parameterType);
         }
+
         private PropertyInfo PropertyForType(Type parameterType, Type startingContext)
         {
-
-        var props =
-                startingContext.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy |
-                                          BindingFlags.Instance);
-            foreach (var propertyInfo in props)
+            var ti = startingContext;
+            Type[] ifaces = startingContext.GetInterfaces();
+            int i = 0;
+            while (true)
             {
-                if (propertyInfo.PropertyType == parameterType ||
-                    parameterType.IsAssignableFrom(propertyInfo.PropertyType))
+
+                var props =
+                    ti.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy |
+                                                  BindingFlags.Instance);
+                foreach (var propertyInfo in props)
                 {
-                    return propertyInfo;
+                    if (propertyInfo.PropertyType == parameterType ||
+                        parameterType.IsAssignableFrom(propertyInfo.PropertyType))
+                    {
+                        return propertyInfo;
+                    }
+                    Type impType = ImplementationTypeForProperty(propertyInfo.Name);
+                    if (impType == parameterType || parameterType.IsAssignableFrom(impType))
+                    {
+                        return propertyInfo;
+                    }
                 }
-                Type impType = ImplementationTypeForProperty(propertyInfo.Name);
-                if (impType == parameterType || parameterType.IsAssignableFrom(impType))
-                {
-                    return propertyInfo;
-                }
+                if (i >= ifaces.Length)
+                    break;
+
+                ti = ifaces[i];
+                ++i;
             }
             return null;
         }
@@ -237,6 +250,27 @@ namespace BinaryFinery.IOC.Runtime.Build
             impl.SetFactory(this);
             TContext rv = (TContext) result;
             return rv;
+        }
+    }
+
+    public class PropertyDependencyResolutionException : BuildException
+    {
+        private readonly string dependentProperty;
+        private readonly Type parameterType;
+
+        public PropertyDependencyResolutionException(Type contextType, string dependentProperty, Type parameterType)
+            : base(contextType)
+        {
+            this.dependentProperty = dependentProperty;
+            this.parameterType = parameterType;
+        }
+
+        public override string ToString()
+        {
+            return
+                string.Format(
+                    "The system attempted to find a property that provides type {2} that appears at or below an implementation attribute for type {1}. The error follows:\n{0} DependentProperty: {1}\n ParameterType: {2}",
+                    base.ToString(), dependentProperty, parameterType);
         }
     }
 }

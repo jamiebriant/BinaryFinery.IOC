@@ -60,6 +60,58 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
         }
     }
 
+    /***********************************************************************************/
+
+    public interface IFragmentedContext : IContext
+    {
+        [Implementation(typeof(DontCareDeps))]
+        IDontCareDeps Deps { get; }
+    }
+
+    public interface IMissingPieceContext : IContext
+    {
+        [Implementation(typeof(OtherFoo))]
+        IFoo B { get; }
+    }
+
+    public interface IJoinContext : IFragmentedContext, IMissingPieceContext
+    {
+        
+    }
+
+    public class JoinContextImp : BaseContextImpl, IJoinContext
+    {
+        public IFoo B
+        {
+            get { return (IFoo)Factory.ObjectForProperty("B"); }
+        }
+
+        public IDontCareDeps Deps
+        {
+            get { return (IDontCareDeps)Factory.ObjectForProperty("Deps"); }
+        }
+    }
+
+    /**********************************************************************/
+
+    public interface IWorkingJoinContext : IFragmentedContext, IMissingPieceContext
+    {
+        [Implementation(typeof(DontCareDeps))]
+        IDontCareDeps Deps { get; }
+    }
+
+    public class WorkingJoinContextImp : BaseContextImpl, IWorkingJoinContext
+    {
+        public IFoo B
+        {
+            get { return (IFoo)Factory.ObjectForProperty("B"); }
+        }
+
+        public IDontCareDeps Deps
+        {
+            get { return (IDontCareDeps)Factory.ObjectForProperty("Deps"); }
+        }
+    }
 
 
 }

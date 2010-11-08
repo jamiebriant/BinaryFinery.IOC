@@ -132,6 +132,28 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
         IDeps DepsP { get; }
     }
 
+    public class DepProp : IDeps
+    {
+        private Foo foo;
+
+        [Inject]
+        public Foo Myfoo
+        {
+            get { return foo; }
+            set { foo = value; }
+        }
+    }
+
+    public interface IDependencyTestProperyInjection : IDependencyTestBaseContext
+    {
+        [Implementation(typeof(Foo))]
+        IFoo FooP { get; }
+
+        [Implementation(typeof(DepProp))]
+        IDeps DepsP { get; }
+
+    }
+
 
     public class DependencyTestContextImpl : BaseContextImpl, IDependencyTestBaseContext
     {
@@ -148,7 +170,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
 
     public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed,
                                             IDependencyTestContext2, IDependencyTestContext2a, IDependencyTestContext,
-                                            IDependencyTestCyclic
+                                            IDependencyTestCyclic, IDependencyTestProperyInjection
     {
     }
 }

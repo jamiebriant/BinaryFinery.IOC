@@ -22,6 +22,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop),
                                                    typeof(IDependencyTestContextAttributed));
             CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestCyclic));
+            CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestProperyInjection));
         }
 
         [Test]
@@ -78,5 +79,16 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             var result = context.DepsP;
             var foo = context.FooP;
         }
+
+        [Test]
+        [Ignore]
+        public void InjectionViaPropertyWorks()
+        {
+            var context = CM.Create<IDependencyTestProperyInjection>();
+            var result = context.DepsP;
+            var foo = context.FooP;
+            Assert.That(result.Myfoo, Is.SameAs(foo));
+        }
+
     }
 }

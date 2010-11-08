@@ -50,4 +50,6 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         IFoo FooP { get; }
     }
+
+
 }

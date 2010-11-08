@@ -40,7 +40,7 @@ namespace BinaryFinery.IOC.Runtime.Build
         internal readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
         internal readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
 
-        private Queue<Type> currentRun = null;
+        private Queue<string> currentRun = null;
 
         public ContextFactory(Type contextType, Type custom)
         {
@@ -58,50 +58,80 @@ namespace BinaryFinery.IOC.Runtime.Build
             get { return contextType; }
         }
 
-        public Type TypeForProperty(string foop)
+        public Type TypeForProperty(string property)
         {
-            return contextType.GetProperty(foop).PropertyType;
+            var ti = contextType;
+            Type[] ifaces = contextType.GetInterfaces();
+            int i = 0;
+            while (i < ifaces.Length)
+            {
+                var info = ti.GetProperty(property);
+                if (info != null)
+                    return info.PropertyType;
+                ++i;
+                ti = ifaces[i];
+            }
+            return null;
         }
 
         public Type ImplementationTypeForProperty(string property)
         {
-            var info = contextType.GetProperty(property);
-            var attrs = info.GetCustomAttributes(typeof(ImplementationAttribute), true);
-            Type propertyType = info.PropertyType;
-            if (attrs.Length == 0)
-                return propertyType;
-            ImplementationAttribute attr = (ImplementationAttribute) attrs[0];
 
-            Type type = attr.Type;
-            if (!propertyType.IsAssignableFrom(type))
-            {
-                throw new ImplementationInterfaceMismatchException(this.contextType, type, propertyType);
-            }
+            // find the most recent declaration.
+
+            var ti = contextType;
             Type[] ifaces = contextType.GetInterfaces();
-            foreach (var iface in ifaces)
+            int i = 0;
+            Type guess = null;
+            Type imp = null;
+            Type impContext = null;
+            while ( i < ifaces.Length)
             {
-                var test = iface.GetProperty(property);
-                if (test != null)
+                var info = ti.GetProperty(property);
+                if (info != null )
                 {
-                    var attrs2 = test.GetCustomAttributes(typeof(ImplementationAttribute), false);
-                    if (attrs2.Length == 0)
-                        continue;
-                    ImplementationAttribute attr2 = (ImplementationAttribute) attrs2[0];
-                    if (!attr2.Type.IsAssignableFrom(type))
+                    if (guess == null)
                     {
-                        throw new ImplementationsMismatchException(contextType, type, attr2.Type, iface);
+                        guess = info.PropertyType;
+                    }
+                    var attrs2 = info.GetCustomAttributes(typeof(ImplementationAttribute), true);
+                    if (attrs2.Length > 0)
+                    {
+                        var attr2 = (ImplementationAttribute) attrs2[0];
+                        Type timp = attr2.Type;
+                        if (imp == null)
+                        {
+                            imp = timp;
+                            impContext = ti;
+                            if (!guess.IsAssignableFrom(imp))
+                            {
+                                throw new ImplementationInterfaceMismatchException(contextType, imp, guess,ti);
+                            }
+                        }
+                        else
+                        {
+                            if ( !timp.IsAssignableFrom(imp))
+                                throw new ImplementationsMismatchException(contextType, imp, impContext, timp, ti);
+                        }
                     }
                 }
+                ti = ifaces[i];
+                ++i;
             }
-            return type;
+            return imp ?? guess;
         }
 
         public object ObjectForProperty(string propertyName)
         {
             if ( currentRun == null)
             {
-                currentRun = new Queue<Type>();
+                currentRun = new Queue<String>();
             }
+            if (currentRun.Contains(propertyName))
+            {
+                throw new CyclicDependencyException(this.contextType);
+            }
+
             object rv;
             if (singletons.TryGetValue(propertyName, out rv))
             {
@@ -110,14 +140,16 @@ namespace BinaryFinery.IOC.Runtime.Build
             Type type = ImplementationTypeForProperty(propertyName);
             try
             {
-                currentRun.Enqueue(type);
+                currentRun.Enqueue(propertyName);
                 // find constructor
                 ConstructorInfo ctor = GetCtor(type);
                 var parameters = ctor.GetParameters();
                 object[] args = new object[parameters.Length];
                 for (int i = 0; i < args.Length; ++i)
                 {
-                    args[i] = ObjectForType(parameters[i].ParameterType);
+                    PropertyInfo pi = PropertyForType(parameters[i].ParameterType,propertyName);
+
+                    args[i] = ObjectForProperty(pi.Name);
                 }
 
                 rv = Activator.CreateInstance(type, args);
@@ -130,6 +162,51 @@ namespace BinaryFinery.IOC.Runtime.Build
                 currentRun.Dequeue();
                 if (currentRun.Count == 0) currentRun = null;
             }
+        }
+
+        private PropertyInfo PropertyForType(Type parameterType, string dependentProperty)
+        {
+            var ti = contextType;
+            Type[] ifaces = contextType.GetInterfaces();
+            int i = ifaces.Length;
+            while (i >= 0)
+            {
+                --i;
+                Type iface = i >=0 ? ifaces[i] : contextType;
+                var pi = iface.GetProperty(dependentProperty);
+                if (pi != null)
+                {
+                    if (!pi.PropertyType.IsInterface || pi.GetCustomAttributes(typeof(ImplementationAttribute), false).Length>0)
+                    {
+                        // found a possible match.
+                        var dt = PropertyForType(parameterType, iface);
+                        if (dt != null)
+                            return dt;
+                    }
+                }
+            }
+            return null;
+        }
+        private PropertyInfo PropertyForType(Type parameterType, Type startingContext)
+        {
+
+        var props =
+                startingContext.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy |
+                                          BindingFlags.Instance);
+            foreach (var propertyInfo in props)
+            {
+                if (propertyInfo.PropertyType == parameterType ||
+                    parameterType.IsAssignableFrom(propertyInfo.PropertyType))
+                {
+                    return propertyInfo;
+                }
+                Type impType = ImplementationTypeForProperty(propertyInfo.Name);
+                if (impType == parameterType || parameterType.IsAssignableFrom(impType))
+                {
+                    return propertyInfo;
+                }
+            }
+            return null;
         }
 
         internal ConstructorInfo GetCtor(Type type)
@@ -150,44 +227,6 @@ namespace BinaryFinery.IOC.Runtime.Build
                 }
             }
             return ctor;
-        }
-
-        private object ObjectForType(Type parameterType)
-        {
-            object rv;
-            if (singletonsByType.TryGetValue(parameterType, out rv))
-            {
-                return rv;
-            }
-            if (currentRun.Contains(parameterType))
-            {
-                throw new CyclicDependencyException(this.contextType);
-            }
-            currentRun.Enqueue(parameterType);
-            try
-            {
-                var props =
-                    contextType.GetProperties(BindingFlags.Public | BindingFlags.FlattenHierarchy |
-                                              BindingFlags.Instance);
-                foreach (var propertyInfo in props)
-                {
-                    if (propertyInfo.PropertyType == parameterType ||
-                        parameterType.IsAssignableFrom(propertyInfo.PropertyType))
-                    {
-                        return ObjectForProperty(propertyInfo.Name);
-                    }
-                    Type impType = ImplementationTypeForProperty(propertyInfo.Name);
-                    if (impType == parameterType || parameterType.IsAssignableFrom(impType))
-                    {
-                        return ObjectForProperty(propertyInfo.Name);
-                    }
-                }
-                return null;
-            }
-            finally
-            {
-                currentRun.Dequeue();
-            }
         }
 
         public TContext Create<TContext>()

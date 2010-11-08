@@ -27,13 +27,15 @@ namespace BinaryFinery.IOC.Runtime.Build
 
     public class ImplementationInterfaceMismatchException : BuildException
     {
+        private readonly Type implementationTypesContext;
         private readonly Type implementationType;
         private readonly Type requiredType;
 
-        public ImplementationInterfaceMismatchException(Type contextType, Type implementationType, Type requiredType)
+        public ImplementationInterfaceMismatchException(Type contextType, Type implementationType, Type requiredType, Type implementationTypesContext)
             : base(contextType)
         {
             this.implementationType = implementationType;
+            this.implementationTypesContext = implementationTypesContext;
             this.requiredType = requiredType;
         }
 
@@ -57,14 +59,16 @@ namespace BinaryFinery.IOC.Runtime.Build
     public class ImplementationsMismatchException : BuildException
     {
         private readonly Type implementationType;
+        private readonly Type implementationTypesContext;
         private readonly Type baseImplementationType;
         private readonly Type baseContext;
 
-        public ImplementationsMismatchException(Type contextType, Type implementationType, Type baseImplementationType,
+        public ImplementationsMismatchException(Type contextType, Type implementationType, Type implementationTypesContext, Type baseImplementationType,
                                                 Type baseContext)
             : base(contextType)
         {
             this.implementationType = implementationType;
+            this.implementationTypesContext = implementationTypesContext;
             this.baseImplementationType = baseImplementationType;
             this.baseContext = baseContext;
         }
@@ -82,6 +86,11 @@ namespace BinaryFinery.IOC.Runtime.Build
         public Type ImplementationType
         {
             get { return implementationType; }
+        }
+
+        public Type ImplementationTypesContext
+        {
+            get { return implementationTypesContext; }
         }
 
         public override string ToString()

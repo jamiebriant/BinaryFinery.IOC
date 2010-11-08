@@ -7,6 +7,8 @@ because the containers are defined using .NET Interfaces, not XML, not dictionar
 This is version 1.0. A very basic 1.0. I wouldn't recommend using it yet, except for the most basic of purposes. OTOH, how you use
 the system isn't going to change: the system uses interfaces and thats about it. There will be more features coming: it is a WIP.
 
+**Note**: For now, the system relies on a manually generating the contexts. See "HACK" below.
+
 What's in the current version:
 
 1. Singleton generation.
@@ -91,7 +93,17 @@ to pass and b) I'm doing MonoTouch development and I can't use reflection for th
         }
     }
 
-As you can see, this basic version of a Context implementation will be easy to generate using Emit, but for now, you have to do it yourself.
+As you can see, this basic version of a Context implementation will be easy to generate using Emit, but for now, you have to do it yourself. 
+You must also manually register this class with the ContextManager:
+
+    CM = ContextSystem.Manager;
+    CM.RegisterCustomContextImplementation(typeof(DependencyTestContextImpl), typeof(IDependencyTestBaseContext));
+
+A nice shortcut is that if you have specializations of IDependencyTestBaseContext that dont add any more properties (i.e. they just
+slap Implementation attributes on existing ones), then you can easily reuse the custom implementation like so:
+
+    public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2 {}
+
 
 Future version will generate the context at runtime using Emit, or tools will create this class for you automatically for use with MonoTouch.
 

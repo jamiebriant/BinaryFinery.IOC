@@ -99,7 +99,7 @@ As you can see, this basic version of a Context implementation will be easy to g
 You must also manually register this class with the ContextManager:
 
     CM = ContextSystem.Manager;
-    CM.RegisterCustomContextImplementation(typeof(DependencyTestContextImpl), typeof(IDependencyTestBaseContext));
+    CM.RegisterCustomContextImplementation(typeof(DependencyTestContextImpl));
 
 A nice shortcut is that if you have specializations of IDependencyTestBaseContext that dont add any more properties (i.e. they just
 slap Implementation attributes on existing ones), then you can easily reuse the custom implementation like so:
@@ -107,8 +107,7 @@ slap Implementation attributes on existing ones), then you can easily reuse the 
     public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2
 	{
 	}
-	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContextAttributed));
-	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop), typeof(IDependencyTestContext2));
+	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop));
 
 
 Future version will generate the context at runtime using Emit, or tools will create this class for you automatically for use with MonoTouch.

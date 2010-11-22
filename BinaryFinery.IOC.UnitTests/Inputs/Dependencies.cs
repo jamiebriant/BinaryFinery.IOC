@@ -267,6 +267,7 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
 
     }
 
+
     /************************************************************************************************
      * The manual context class.
      */

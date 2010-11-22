@@ -7,4 +7,8 @@ namespace BinaryFinery.IOC.Runtime
     {
     }
 
+    public interface IInjector
+    {
+        void Inject(object injectee);
+    }
 }

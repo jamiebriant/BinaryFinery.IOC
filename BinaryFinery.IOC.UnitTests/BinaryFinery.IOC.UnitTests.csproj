@@ -50,6 +50,7 @@
     <Compile Include="Tests\Building\TestCompoundContexts.cs" />
     <Compile Include="Tests\Building\TestContextManagement.cs" />
     <Compile Include="Tests\Building\TestDependencyConstruction.cs" />
+    <Compile Include="Tests\Building\TestIndependentInjection.cs" />
     <Compile Include="Tests\Building\TestNamedDependencies.cs" />
     <Compile Include="Tests\Meta\TestComprehension.cs" />
     <Compile Include="Tests\Meta\TestErrorsInHierarchy.cs" />

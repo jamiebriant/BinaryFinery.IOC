@@ -13,6 +13,7 @@ namespace BinaryFinery.IOC.Runtime.Build
         private readonly Type contextType;
         private readonly Type custom;
         internal readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
+        private IContext externalContext; // what the world sees.
 
         public ContextFactory(Type contextType, Type custom)
         {
@@ -168,8 +169,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                         object[] args = new object[parameters.Length];
                         for (int i = 0; i < args.Length; ++i)
                         {
-                            PropertyInfo pi = PropertyForType(parameters[i].ParameterType, cn);
-                            args[i] = InternalObjectForProperty(pi.Name);
+                            args[i] = ResolveObjectForType(parameters[i].ParameterType, cn);
                         }
                         methodInfo.Invoke(cn.Built, args);
                     }
@@ -198,8 +198,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                 object[] customAttributes = Attribute.GetCustomAttributes(propertyInfo,typeof(InjectAttribute), true);
                 if ( customAttributes.Length>0)
                 {
-                    PropertyInfo pi = PropertyForType(propertyInfo.PropertyType, cn);
-                    object o = InternalObjectForProperty(pi.Name);
+                    object o = ResolveObjectForType(propertyInfo.PropertyType, cn);
                     propertyInfo.SetValue(cn.Built, o, null);
                 }
             }
@@ -227,8 +226,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                 object[] args = new object[parameters.Length];
                 for (int i = 0; i < args.Length; ++i)
                 {
-                    PropertyInfo pi = PropertyForType(parameters[i].ParameterType, node);
-                    args[i] = InternalObjectForProperty(pi.Name);
+                    args[i] = ResolveObjectForType(parameters[i].ParameterType, node);
                 }
 
                 rv = Activator.CreateInstance(node.ImplementationType, args);
@@ -241,6 +239,16 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 currentState.ConstructorStack.Pop();
             }
+        }
+
+        private object ResolveObjectForType(Type type, ConstructionNode node)
+        {
+            if (type.IsAssignableFrom(contextType))
+            {
+                return externalContext;
+            }
+            PropertyInfo pi = PropertyForType(type, node);
+            return InternalObjectForProperty(pi.Name);
         }
 
         private PropertyInfo PropertyForType(Type parameterType, ConstructionNode node)
@@ -305,14 +313,17 @@ namespace BinaryFinery.IOC.Runtime.Build
             return ctor;
         }
 
-        public TContext Create<TContext>()
+        internal TContext Create<TContext>()
             where TContext : class, IContext
         {
-            object result = Activator.CreateInstance(custom);
-            BaseContextImpl impl = (BaseContextImpl) result;
-            impl.SetFactory(this);
-            TContext rv = (TContext) result;
-            return rv;
+            if (externalContext == null)
+            {
+                object result = Activator.CreateInstance(custom);
+                BaseContextImpl impl = (BaseContextImpl) result;
+                impl.SetFactory(this);
+                externalContext = (TContext) result;
+            }
+            return (TContext) externalContext;
         }
     }
 }

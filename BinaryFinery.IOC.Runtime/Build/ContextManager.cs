@@ -30,11 +30,16 @@ namespace BinaryFinery.IOC.Runtime.Build
         public T Create<T>()
             where T : class, IContext
         {
-            IContextFactory factory = GetFactory<T>();
+            ContextFactory factory = IntlGetFactory<T>();
             return factory.Create<T>();
         }
 
         public IContextFactory GetFactory<T>()
+        {
+            return IntlGetFactory<T>();
+        }
+
+        private ContextFactory IntlGetFactory<T>()
         {
             Type custom;
             if (customImplementations.TryGetValue(typeof(T), out custom))

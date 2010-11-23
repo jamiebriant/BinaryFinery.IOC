@@ -19,8 +19,12 @@ What's in the current version:
 
 New:
 
-1. Hand-built proxy registration simplified. Registering the concrete type registers all its interfaces.
-2. **Note:** By the order of YAGNI I removed the projects from the solution that aren't ready/used yet.
+1. **Breaking Change**: Hand-built proxies now call the internal factories via their base class. This will allow me to
+make changes in the future without breaking stuff. Sorry.
+2. Manual injection. You can now manually inject classes if you have the context handy, using the new Inject(object) method of IContext.
+3. You can now inject the context itself. 
+
+These last two make factories a lot easier.
 
 Future versions:
 
@@ -86,12 +90,12 @@ to pass and b) I'm doing MonoTouch development and I can't use reflection for th
     {
         public IFoo FooP
         {
-            get { return (IFoo) Factory.ObjectForProperty("FooP"); }
+            get { return (IFoo) ObjectForProperty("FooP"); }
         }
 
         public IDeps DepsP
         {
-            get { return (IDeps) Factory.ObjectForProperty("DepsP"); ; }
+            get { return (IDeps) ObjectForProperty("DepsP"); ; }
         }
     }
 

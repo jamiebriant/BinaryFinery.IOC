@@ -19,17 +19,17 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         public IFoo OtherFoo
         {
-            get { return (IFoo) Factory.ObjectForProperty("OtherFoo"); }
+            get { return (IFoo) ObjectForProperty("OtherFoo"); }
         }
 
         public IFoo Foo
         {
-            get { return (IFoo) Factory.ObjectForProperty("Foo"); }
+            get { return (IFoo) ObjectForProperty("Foo"); }
         }
 
         public IDontCareDeps NeedsFoo
         {
-            get { return (IDontCareDeps)Factory.ObjectForProperty("NeedsFoo"); }
+            get { return (IDontCareDeps)ObjectForProperty("NeedsFoo"); }
         }
     }
     #endregion

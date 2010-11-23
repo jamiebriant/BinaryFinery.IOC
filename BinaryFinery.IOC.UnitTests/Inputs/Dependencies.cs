@@ -167,12 +167,12 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         public IFoo FooP
         {
-            get { return (IFoo) Factory.ObjectForProperty("FooP"); }
+            get { return (IFoo) ObjectForProperty("FooP"); }
         }
 
         public IDeps DepsP
         {
-            get { return (IDeps) Factory.ObjectForProperty("DepsP"); }
+            get { return (IDeps) ObjectForProperty("DepsP"); }
         }
     }
 

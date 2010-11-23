@@ -19,7 +19,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
     {
         public Foo Foo
         {
-            get { return (Foo) Factory.ObjectForProperty("Foo"); }
+            get { return (Foo) ObjectForProperty("Foo"); }
         }
     }
 

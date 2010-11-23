@@ -50,5 +50,21 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             Assert.That(crf.Context, Is.EqualTo(context));
 
         }
+
+        class INeedFoo
+        {
+            [Inject]
+            public IFoo Fooooo { get; set; }
+        }
+
+        [Test]
+        public void TestContextCanManuallyInjectObjectsIntoOthers()
+        {
+            var context = CM.Create<IInjectionContext>();
+            var inf = new INeedFoo();
+            Assert.That(inf.Fooooo,Is.Null);
+            context.Inject(inf);
+            Assert.That(inf.Fooooo, Is.Not.Null);
+        }
     }
 }

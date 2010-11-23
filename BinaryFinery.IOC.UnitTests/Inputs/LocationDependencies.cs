@@ -46,17 +46,17 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         public IFoo A
         {
-            get { return (IFoo) Factory.ObjectForProperty("A"); }
+            get { return (IFoo) ObjectForProperty("A"); }
         }
 
         public IFoo B
         {
-            get { return (IFoo) Factory.ObjectForProperty("B"); }
+            get { return (IFoo) ObjectForProperty("B"); }
         }
 
         public IDontCareDeps Deps
         {
-            get { return (IDontCareDeps) Factory.ObjectForProperty("Deps"); }
+            get { return (IDontCareDeps) ObjectForProperty("Deps"); }
         }
     }
 
@@ -83,12 +83,12 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         public IFoo B
         {
-            get { return (IFoo)Factory.ObjectForProperty("B"); }
+            get { return (IFoo)ObjectForProperty("B"); }
         }
 
         public IDontCareDeps Deps
         {
-            get { return (IDontCareDeps)Factory.ObjectForProperty("Deps"); }
+            get { return (IDontCareDeps)ObjectForProperty("Deps"); }
         }
     }
 
@@ -104,12 +104,12 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
     {
         public IFoo B
         {
-            get { return (IFoo)Factory.ObjectForProperty("B"); }
+            get { return (IFoo)ObjectForProperty("B"); }
         }
 
         public IDontCareDeps Deps
         {
-            get { return (IDontCareDeps)Factory.ObjectForProperty("Deps"); }
+            get { return (IDontCareDeps)ObjectForProperty("Deps"); }
         }
     }
 

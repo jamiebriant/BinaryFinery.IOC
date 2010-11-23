@@ -128,9 +128,17 @@ namespace BinaryFinery.IOC.Runtime.Build
             }
 
             public object Built;
-            public PropertyInfo ImplementationProperty; // may be just a property with a concrete type (which is bad, ok)
+            public readonly PropertyInfo ImplementationProperty; // may be just a property with a concrete type (which is bad, ok)
             public readonly Type ImplementationType;
-            public Type ImplementationContext; // where we found the implementation.
+            public readonly Type ImplementationContext; // where we found the implementation.
+
+            // Used for manual injection
+            public ConstructionNode(Type contextType, object injectee)
+            {
+                Built = injectee;
+                ImplementationType = injectee.GetType();
+                ImplementationContext = contextType;
+            }
         }
 
         private State currentState;
@@ -152,6 +160,23 @@ namespace BinaryFinery.IOC.Runtime.Build
 
             return rv;
         }
+ 
+        public void Inject(object injectee)
+        {
+            if (currentState == null)
+            {
+                currentState = new State();
+            }
+            currentState.ConstructedObjectsWaitingPropertyInjection.Enqueue(new ConstructionNode(contextType, injectee));
+            // Now we must go thru all the created objects, and initialize their properties.);
+            while (currentState.ConstructedObjectsWaitingPropertyInjection.Count > 0)
+            {
+                ConstructionNode cn = currentState.ConstructedObjectsWaitingPropertyInjection.Dequeue();
+                ResolvePropertyDependencies(cn);
+                ResolveMethodDependencies(cn);
+            }
+        }
+ 
 
         private void ResolveMethodDependencies(ConstructionNode cn)
         {
@@ -325,5 +350,6 @@ namespace BinaryFinery.IOC.Runtime.Build
             }
             return (TContext) externalContext;
         }
+
     }
 }

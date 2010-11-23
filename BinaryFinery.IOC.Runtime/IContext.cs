@@ -3,7 +3,7 @@
 // 
 namespace BinaryFinery.IOC.Runtime
 {
-    public interface IContext
+    public interface IContext : IInjector
     {
     }
 

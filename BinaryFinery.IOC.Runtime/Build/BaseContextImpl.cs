@@ -1,21 +1,22 @@
 ﻿namespace BinaryFinery.IOC.Runtime.Build
 {
-    public class BaseContextImpl : IContext, IInjector
+    public class BaseContextImpl : IContext
     {
-        private IContextFactory factory;
+        private ContextFactory factory;
 
-        internal void SetFactory(IContextFactory factory)
+        internal void SetFactory(ContextFactory factory)
         {
             this.factory = factory;
         }
 
-        protected IContextFactory Factory
-        {
-            get { return factory; }
-        }
-
         public void Inject(object injectee)
         {
+            factory.Inject(injectee);
+        }
+
+        protected object ObjectForProperty(string propertyName)
+        {
+            return factory.ObjectForProperty(propertyName);
         }
     }
 }

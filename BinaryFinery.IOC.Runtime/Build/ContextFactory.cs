@@ -12,8 +12,11 @@ namespace BinaryFinery.IOC.Runtime.Build
     {
         private readonly Type contextType;
         private readonly Type custom;
-        internal readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
-        internal readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
+        readonly Dictionary<string,ConstructionNode> nodeMap = new Dictionary<string, ConstructionNode>();
+
+        readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
+        readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
+
         private IContext externalContext; // what the world sees.
 
         public ContextFactory(Type contextType, Type custom)
@@ -50,7 +53,7 @@ namespace BinaryFinery.IOC.Runtime.Build
         
         public Type ImplementationTypeForPropertyForTesting(string property)
         {
-            var cn = ImplementationTypeForProperty(property);
+            var cn = ImplementationTypeForPropertyBuilder(property);
             return cn == null ? null : cn.ImplementationType;
         }
 
@@ -58,14 +61,20 @@ namespace BinaryFinery.IOC.Runtime.Build
         private ConstructionNode ImplementationTypeForProperty(string property)
         {
             // find the most recent declaration.
+            ConstructionNode node = null;
+            nodeMap.TryGetValue(property, out node);
+            return node;
+        }
 
+        private ConstructionNode ImplementationTypeForPropertyBuilder(string property)
+        {
             var ti = contextType;
             Type[] ifaces = contextType.GetInterfaces();
             int i = 0;
             Type imp = null;
             PropertyInfo impPropertyInfo = null;
             Type impContext = null;
-
+            InstantiationTiming timing = InstantiationTiming.Lazy;
             // This is combining the search with the check.
 
             while (true)
@@ -75,11 +84,13 @@ namespace BinaryFinery.IOC.Runtime.Build
                 {
                     Type pt = info.PropertyType;
                     Type timp = null;
+                    InstantiationTiming ttiming = InstantiationTiming.Lazy;
                     var attrs2 = info.GetCustomAttributes(typeof(ImplementationAttribute), true);
                     if (attrs2.Length > 0)
                     {
                         var attr2 = (ImplementationAttribute)attrs2[0];
                         timp = attr2.Type;
+                        ttiming = attr2.Timing;
                     }
                     else if (!info.PropertyType.IsInterface)
                     {
@@ -92,6 +103,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                             imp = timp;
                             impContext = ti;
                             impPropertyInfo = info;
+                            timing = ttiming;
                         }
                         else
                         {
@@ -109,7 +121,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                 ti = ifaces[i];
                 ++i;
             }
-            return new ConstructionNode(impPropertyInfo,impContext,imp);
+            return new ConstructionNode(impPropertyInfo,impContext,imp,timing);
         }
 
         class State
@@ -121,17 +133,20 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         class ConstructionNode
         {
-            public ConstructionNode(PropertyInfo implementationProperty, Type implementationContext, Type imp)
+            public ConstructionNode(PropertyInfo implementationProperty, Type implementationContext, Type imp, InstantiationTiming timing)
             {
                 ImplementationProperty = implementationProperty;
                 ImplementationContext = implementationContext;
                 ImplementationType = imp;
+                InstantiationTiming = timing;
             }
+
 
             public object Built;
             public readonly PropertyInfo ImplementationProperty; // may be just a property with a concrete type (which is bad, ok)
             public readonly Type ImplementationType;
             public readonly Type ImplementationContext; // where we found the implementation.
+            public readonly InstantiationTiming InstantiationTiming;
 
             // Used for manual injection
             public ConstructionNode(Type contextType, object injectee)
@@ -139,17 +154,18 @@ namespace BinaryFinery.IOC.Runtime.Build
                 Built = injectee;
                 ImplementationType = injectee.GetType();
                 ImplementationContext = contextType;
+                InstantiationTiming = InstantiationTiming.Lazy;
             }
         }
 
-        private State currentState;
+        private State currentState = new State();
 
         public object ObjectForProperty(string propertyName)
         {
-            if (currentState == null)
-            {
-                currentState = new State();
-            }
+//            if (currentState == null)
+//            {
+//                currentState = new State();
+//            }
             object rv = InternalObjectForProperty(propertyName);
             // Now we must go thru all the created objects, and initialize their properties.
             CompleteBuild();
@@ -160,10 +176,10 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public void Inject(object injectee)
         {
-            if (currentState == null)
-            {
-                currentState = new State();
-            }
+//            if (currentState == null)
+//            {
+//                currentState = new State();
+//            }
             currentState.ConstructedObjectsWaitingPropertyInjection.Enqueue(new ConstructionNode(contextType, injectee));
             // Now we must go thru all the created objects, and initialize their properties.);
             CompleteBuild();
@@ -396,10 +412,32 @@ namespace BinaryFinery.IOC.Runtime.Build
                 object result = Activator.CreateInstance(custom);
                 BaseContextImpl impl = (BaseContextImpl) result;
                 impl.SetFactory(this);
+                // now have to check for eager implementations
+                CreateEagerImplementations(custom, impl);
                 externalContext = (TContext) result;
             }
             return (TContext) externalContext;
         }
 
+        private void CreateEagerImplementations(Type type, BaseContextImpl impl)
+        {
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var info in props)
+            {
+                var node = ImplementationTypeForPropertyBuilder(info.Name);
+                nodeMap.Add(info.Name,node);
+            }
+
+            // Now build all the nodes.
+            foreach (var constructionNode in nodeMap)
+            {
+                if (constructionNode.Value.InstantiationTiming == InstantiationTiming.Eager)
+                {
+                    InternalObjectForProperty(constructionNode.Value.ImplementationProperty.Name);
+                }
+            }
+            CompleteBuild();
+        }
     }
 }

@@ -20,13 +20,12 @@ What's in the current version:
 make changes in the future without breaking stuff. Sorry.
 2. Manual injection. You can now manually inject classes if you have the context handy, using the new Inject(object) method of IContext.
 3. You can now inject the context itself. 
-
-New:
-
 1. All requests that result in a given type being manufactured do so only once.
 1. Post-construction events / methods.
 
-If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
+New:
+
+1. An ImplementationAttribute can optionally define an InstantiationTiming value. Eager implementations will be instantiated as soon as the context is created.
 
 
 Future versions:
@@ -66,6 +65,15 @@ The application can then realise this context as follows:
 
 If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
 
+    public interface IEagerTestContext : ITestContext
+    {
+        [Implementation(typeof(EagerFoo),InstantiationTiming.Eager)]
+        Foo Foo { get; }
+    }
+
+	... CM.Create<IEagerTestContext>(); // EagerFoo created before this returns.
+
+An ImplementationAttribute can optionally define an InstantiationTiming value. Eager implementations will be instantiated as soon as the context is created.
 
 Specialisation
 --------------

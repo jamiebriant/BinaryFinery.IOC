@@ -17,7 +17,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 
 
 
-    public class TestContextImpl : BaseContextImpl, ITestContext
+    public class TestContextImpl : BaseContextImpl, ITestContext, IEagerTestContext, ILazyTestContext
     {
         public Foo Foo
         {
@@ -32,6 +32,28 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
     public interface IInterface2
     {
         
+    }
+
+    class EagerFoo : Foo
+    {
+        public static bool IsContructed = false;
+
+        public EagerFoo()
+        {
+            IsContructed = true;
+        }
+    }
+
+    public interface IEagerTestContext : ITestContext
+    {
+        [Implementation(typeof(EagerFoo),InstantiationTiming.Eager)]
+        Foo Foo { get; }
+    }
+
+    public interface ILazyTestContext : ITestContext
+    {
+        [Implementation(typeof(EagerFoo))]
+        Foo Foo { get; }
     }
 
     public class MyImpl : IInterface1, IInterface2
@@ -104,6 +126,22 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             IInterface1 foo = context.Iface1;
             IInterface2 foo2 = context.Iface2;
             Assert.That(foo, Is.SameAs(foo2));
+        }
+        [Test]
+        public void EagerImplementaitonsAreCreatedImmediately()
+        {
+            EagerFoo.IsContructed = false;
+            IEagerTestContext context = CM.Create<IEagerTestContext>();
+            Assert.That(EagerFoo.IsContructed, Is.True);
+        }
+        [Test]
+        public void LazyImplementaitonsAreNotCreatedImmediately()
+        {
+            EagerFoo.IsContructed = false;
+            ILazyTestContext context = CM.Create<ILazyTestContext>();
+            Assert.That(EagerFoo.IsContructed, Is.False);
+            Foo x = context.Foo;
+            Assert.That(EagerFoo.IsContructed, Is.True);
         }
     }
 }

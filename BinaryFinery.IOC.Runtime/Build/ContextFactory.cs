@@ -177,12 +177,12 @@ namespace BinaryFinery.IOC.Runtime.Build
                 ResolveMethodDependencies(cn);
             }
 
-            Queue<ConstructionNode> constructedObjectsWaitingBuildFinalized = currentState.ConstructedObjectsWaitingBuildFinalized;
-            currentState = null;
+//            Queue<ConstructionNode> constructedObjectsWaitingBuildFinalized = currentState.ConstructedObjectsWaitingBuildFinalized;
+//            currentState = null;
             // This causes anything built as part of the finalization to be in a new build group.
-            while (constructedObjectsWaitingBuildFinalized.Count > 0)
+            while (currentState.ConstructedObjectsWaitingBuildFinalized.Count > 0)
             {
-                ConstructionNode cn = constructedObjectsWaitingBuildFinalized.Dequeue();
+                ConstructionNode cn = currentState.ConstructedObjectsWaitingBuildFinalized.Dequeue();
                 CallCompletionMethods(cn);
             }
         }

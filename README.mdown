@@ -218,8 +218,8 @@ This method will be called after all objects have been resolved and injected.
 Note, that at this stage, all the required objects have been injected, but they may not be fully injected: they may also have an InjectionCompleteHandler that needs 
 to be called before they are ready. In this case, use regular events to request notification.
 
-If an InjectionCompleteHandler method makes calls that call the context, and that results in more objects being created, then in the current implementation, all of these new objects will have their InjectionCompleteHandler 
-methods called first. However I haven't decided if that is a good or bad idea, so this may change. In fact, it probably will change.
+If an InjectionCompleteHandler method makes calls that call the context, and that results in more objects being created, any InjectionCompleteHandler calls for the new objects are scheduled to be called
+after the original groups ICH handler methods are called. **Note** that because of the systems ability to handle cyclic dependencies, the order of these calls is not guaranteed.
 
 Background
 ----------

@@ -148,8 +148,11 @@ As a result, BF.IOC will never handle cyclic dependencies in constructors other 
 How dependencies are resolved
 -----------------------------
 
-Dependencies are resolved primarily using types. Simply if Foo has constructor Foo(IBar b) then when Foo is constructed, the
-factory will look for a property that can supply an IBar. However, take this set of contexts:
+Dependencies are resolved in a two stage process, first using type lookup to find a suitable property, and then using property lookup. 
+If Foo has constructor Foo(IBar b) then when Foo is constructed, the factory will look for a property that can supply an IBar defined in that
+interface, and its ancestors. Once it has the property name, it reexamines that property, starting with the specific interface of the context.
+
+Consider this set of contexts:
 
     public interface ILocationDependencyContext2 : ILocationDependencyContext
     {
@@ -173,8 +176,17 @@ factory will look for a property that can supply an IBar. However, take this set
 
 In this example, class DontCareDeps requires an IFoo. It doesnt care what kind of IFoo. I just wants one. However, the author of IAnotherLocationDependencyContext2 expects
 that this instance of DontCareDeps should use class OtherFoo. What should happen when we ask ICompoundContext for its Deps? It should still build Deps using OtherFoo from 
-property B, not Foo from property A. So the simple type-only resolution from v 1.0 isn't quite good enough. The system will resolve ambiguities for a property X by looking
-where property X was initially declared - i.e. the most general interface. In the case where X is actually compatibly defined in more than one "base" interface, the behavior
+property B, not Foo from property A. If the a more specialized version of the context is in use, and that context defines a property B, then Deps will now use the implementation
+of B as defined in the specialized version. 
+
+    public interface ICompoundContext : ILocationDependencyContext2, IAnotherLocationDependencyContext2
+    {
+        [Implementation(typeof(ADifferentOtherFoo))]
+        IFoo B { get; } // context.Deps will use ADifferentOtherFoo, not OtherFoo
+    }
+
+The system will resolve ambiguities for a property X by looking in the interface
+where property X was initially declared. In the case where X is actually compatibly defined in more than one "base" interface, the behavior
 is "not defined", i.e. it will use the first one it finds, and this can depending on circumstance, build version, optization etc. 
 
 ### Depdendency Fragments

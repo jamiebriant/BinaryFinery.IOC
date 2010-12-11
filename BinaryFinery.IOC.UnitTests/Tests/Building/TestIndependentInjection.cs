@@ -10,8 +10,22 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 
     public class ContextRequiringFoo : IFoo
     {
+        private bool complete = false;
+
+        public bool Complete
+        {
+            get { return complete; }
+        }
+
         [Inject]
         public IInjectionContext Context { get; set; }
+
+        [InjectionCompleteHandler]
+        public void InjectionComplete()
+        {
+            Assert.That(Context,Is.Not.Null);
+            complete = true;
+        }
     }
 
     public interface IInjectionContext : IDependencyTestBaseContext
@@ -65,6 +79,17 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             Assert.That(inf.Fooooo,Is.Null);
             context.Inject(inf);
             Assert.That(inf.Fooooo, Is.Not.Null);
+        }
+
+        [Test]
+        public void TestInjectionCompleteIsCalled()
+        {
+            var context = CM.Create<IInjectionContext>();
+
+            IFoo foo = context.FooP;
+            ContextRequiringFoo crf = (ContextRequiringFoo)foo;
+            Assert.That(crf.Complete, Is.True);
+            
         }
     }
 }

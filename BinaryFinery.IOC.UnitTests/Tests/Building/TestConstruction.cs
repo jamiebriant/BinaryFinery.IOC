@@ -3,6 +3,7 @@
 // 
 using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
+using BinaryFinery.IOC.Runtime.Meta;
 using BinaryFinery.IOC.UnitTests.Inputs;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -15,6 +16,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
     }
 
 
+
     public class TestContextImpl : BaseContextImpl, ITestContext
     {
         public Foo Foo
@@ -22,6 +24,43 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             get { return (Foo) ObjectForProperty("Foo"); }
         }
     }
+
+    public interface IInterface1
+    {
+        
+    }
+    public interface IInterface2
+    {
+        
+    }
+
+    public class MyImpl : IInterface1, IInterface2
+    {
+        
+    }
+
+    public interface ITestContext2 : IContext
+    {
+        [Implementation(typeof(MyImpl))]
+        IInterface1 Iface1 { get; }
+
+        [Implementation(typeof(MyImpl))]
+        IInterface2 Iface2 { get; }
+    }
+
+    public class TestContext2Impl : BaseContextImpl, ITestContext2
+    {
+        public IInterface1 Iface1
+        {
+            get { return (IInterface1)ObjectForProperty("Iface1"); }
+        }
+
+        public IInterface2 Iface2
+        {
+            get { return (IInterface2)ObjectForProperty("Iface2"); }
+        }
+    }
+
 
     public class TestConstruction
     {
@@ -32,6 +71,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         {
             CM = ContextSystem.Manager;
             CM.RegisterCustomContextImplementation(typeof(TestContextImpl));
+            CM.RegisterCustomContextImplementation(typeof(TestContext2Impl));
         }
 
         [Test]
@@ -55,6 +95,14 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             ITestContext context = CM.Create<ITestContext>();
             IFoo foo = context.Foo;
             IFoo foo2 = context.Foo;
+            Assert.That(foo, Is.SameAs(foo2));
+        }
+        [Test]
+        public void CreatedFooIsSingletonAcrossAllProperties()
+        {
+            ITestContext2 context = CM.Create<ITestContext2>();
+            IInterface1 foo = context.Iface1;
+            IInterface2 foo2 = context.Iface2;
             Assert.That(foo, Is.SameAs(foo2));
         }
     }

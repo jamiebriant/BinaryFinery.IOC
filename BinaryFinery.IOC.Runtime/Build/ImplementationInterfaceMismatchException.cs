@@ -106,4 +106,24 @@ namespace BinaryFinery.IOC.Runtime.Build
         {
         }
     }
+
+    public class MissingDefinitionException : BuildException
+    {
+        private readonly string propertyName;
+
+        public MissingDefinitionException(string propertyName, Type contextType) : base(contextType)
+        {
+            this.propertyName = propertyName;
+        }
+
+        public string PropertyName
+        {
+            get { return propertyName; }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("PropertyName: {1} BaseContext: {0}", base.ToString(), propertyName);
+        }
+    }
 }

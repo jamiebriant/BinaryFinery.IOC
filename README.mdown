@@ -16,20 +16,22 @@ What's in the current version:
 3. Detects cyclic dependencies (throws exception)
 4. Injection using properties. Add an [Inject] attribute.
 1. Injection using methods. Add an [Inject] attribute.
-
-New:
-
 1. **Breaking Change**: Hand-built proxies now call the internal factories via their base class. This will allow me to
 make changes in the future without breaking stuff. Sorry.
 2. Manual injection. You can now manually inject classes if you have the context handy, using the new Inject(object) method of IContext.
 3. You can now inject the context itself. 
 
-These last two make factories a lot easier.
+New:
+
+1. All requests that result in a given type being manufactured do so only once.
+1. Post-construction events / methods.
+
+If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
+
 
 Future versions:
 
 2. Context hiearchies.
-3. Post-construction events / methods.
 
 How To Use It
 -------------
@@ -61,6 +63,9 @@ The application can then realise this context as follows:
     var context = CM.Create<IDependencyTestContext>();
     var result = context.DepsP;
     Assert.That(result,Is.Not.Null);
+
+If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
+
 
 Specialisation
 --------------
@@ -197,7 +202,24 @@ However, a fragmented interface can be repaired later, by redoing the implentati
         IDontCareDeps Deps { get; }
     }
 
+If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
 
+Injection Complete Methods
+--------------------------
+
+    [InjectionCompleteHandler]
+    public void InjectionComplete()
+	{
+		// do something interesting.
+    }
+
+This method will be called after all objects have been resolved and injected.
+
+Note, that at this stage, all the required objects have been injected, but they may not be fully injected: they may also have an InjectionCompleteHandler that needs 
+to be called before they are ready. In this case, use regular events to request notification.
+
+If an InjectionCompleteHandler method makes calls that call the context, and that results in more objects being created, then in the current implementation, all of these new objects will have their InjectionCompleteHandler 
+methods called first. However I haven't decided if that is a good or bad idea, so this may change. In fact, it probably will change.
 
 Background
 ----------

@@ -13,6 +13,7 @@ namespace BinaryFinery.IOC.Runtime.Build
         private readonly Type contextType;
         private readonly Type custom;
         internal readonly Dictionary<string, object> singletons = new Dictionary<string, object>();
+        internal readonly Dictionary<Type, object> singletonsByType = new Dictionary<Type, object>();
         private IContext externalContext; // what the world sees.
 
         public ContextFactory(Type contextType, Type custom)
@@ -115,7 +116,7 @@ namespace BinaryFinery.IOC.Runtime.Build
         {
             public readonly Stack<String> ConstructorStack = new Stack<String>();
             public readonly Queue<ConstructionNode> ConstructedObjectsWaitingPropertyInjection = new Queue<ConstructionNode>();
-            // getting ahead of myself. public Queue<object> ConstructedObjectsWaitingBuildFinalized = new Queue<object>();
+            public Queue<ConstructionNode> ConstructedObjectsWaitingBuildFinalized = new Queue<ConstructionNode>();
         }
 
         class ConstructionNode
@@ -151,16 +152,12 @@ namespace BinaryFinery.IOC.Runtime.Build
             }
             object rv = InternalObjectForProperty(propertyName);
             // Now we must go thru all the created objects, and initialize their properties.
-            while (currentState.ConstructedObjectsWaitingPropertyInjection.Count>0)
-            {
-                ConstructionNode cn = currentState.ConstructedObjectsWaitingPropertyInjection.Dequeue();
-                ResolvePropertyDependencies(cn);
-                ResolveMethodDependencies(cn);
-            }
+            CompleteBuild();
+
 
             return rv;
         }
- 
+
         public void Inject(object injectee)
         {
             if (currentState == null)
@@ -169,19 +166,53 @@ namespace BinaryFinery.IOC.Runtime.Build
             }
             currentState.ConstructedObjectsWaitingPropertyInjection.Enqueue(new ConstructionNode(contextType, injectee));
             // Now we must go thru all the created objects, and initialize their properties.);
+            CompleteBuild();
+        }
+        private void CompleteBuild()
+        {
             while (currentState.ConstructedObjectsWaitingPropertyInjection.Count > 0)
             {
                 ConstructionNode cn = currentState.ConstructedObjectsWaitingPropertyInjection.Dequeue();
                 ResolvePropertyDependencies(cn);
                 ResolveMethodDependencies(cn);
             }
+
+            Queue<ConstructionNode> constructedObjectsWaitingBuildFinalized = currentState.ConstructedObjectsWaitingBuildFinalized;
+            currentState = null;
+            // This causes anything built as part of the finalization to be in a new build group.
+            while (constructedObjectsWaitingBuildFinalized.Count > 0)
+            {
+                ConstructionNode cn = constructedObjectsWaitingBuildFinalized.Dequeue();
+                CallCompletionMethods(cn);
+            }
         }
- 
+
+        private void CallCompletionMethods(ConstructionNode cn)
+        {
+            Type t = cn.ImplementationType;
+            var methods = t.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var methodInfo in methods)
+            {
+                var parameters = methodInfo.GetParameters();
+
+                if (parameters.Length == 0)
+                {
+                    object[] customAttributes = Attribute.GetCustomAttributes(methodInfo, typeof(InjectionCompleteHandlerAttribute), true);
+                    if (customAttributes.Length > 0)
+                    {
+                        methodInfo.Invoke(cn.Built, new object[0]);
+                    }
+                }
+            }
+
+        }
+
 
         private void ResolveMethodDependencies(ConstructionNode cn)
         {
             Type t = cn.ImplementationType;
             var methods = t.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            bool foundBuildComplete = false;
             foreach (var methodInfo in methods)
             {
                 var parameters = methodInfo.GetParameters();
@@ -198,7 +229,17 @@ namespace BinaryFinery.IOC.Runtime.Build
                         }
                         methodInfo.Invoke(cn.Built, args);
                     }
-                }                
+                }
+                else if (!foundBuildComplete)
+                {
+                    object[] customAttributes = Attribute.GetCustomAttributes(methodInfo, typeof(InjectionCompleteHandlerAttribute), true);
+                    if (customAttributes.Length > 0)
+                    {
+                        foundBuildComplete = true;
+                        currentState.ConstructedObjectsWaitingBuildFinalized.Enqueue(cn);
+                    }
+                    
+                }
             }
         }
 
@@ -242,6 +283,14 @@ namespace BinaryFinery.IOC.Runtime.Build
                 return rv;
             }
             ConstructionNode node = ImplementationTypeForProperty(propertyName);
+            if (node == null)
+            {
+                throw new MissingDefinitionException(propertyName, this.contextType);
+            }
+            if (singletonsByType.TryGetValue(node.ImplementationType, out rv))
+            {
+                return rv;
+            }
             try
             {
                 currentState.ConstructorStack.Push(propertyName);
@@ -256,6 +305,7 @@ namespace BinaryFinery.IOC.Runtime.Build
 
                 rv = Activator.CreateInstance(node.ImplementationType, args);
                 singletons[propertyName] = rv;
+                singletonsByType[node.ImplementationType] = rv;
                 node.Built = rv;
                 currentState.ConstructedObjectsWaitingPropertyInjection.Enqueue(node);
                 return rv;

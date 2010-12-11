@@ -1,9 +1,12 @@
 ﻿// 
 // Copyright (c) 2010 Jamie Briant, BinaryFinery.com
 // 
+using System.Runtime.Remoting.Contexts;
 using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
 using BinaryFinery.IOC.Runtime.Meta;
+using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 
 namespace BinaryFinery.IOC.UnitTests.Inputs
 {
@@ -148,6 +151,12 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
         {
             get { return foo; }
         }
+        [InjectionCompleteHandler]
+        public void InjectionComplete()
+        {
+            Assert.That(Myfoo, Is.Not.Null);
+        }
+
     }
 
     public interface IDependencyTestProperyInjection : IDependencyTestBaseContext

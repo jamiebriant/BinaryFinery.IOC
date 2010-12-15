@@ -8,7 +8,7 @@ namespace BinaryFinery.IOC.Runtime.Build
 {
     public class ContextSystem
     {
-        private static readonly ContextManager manager = new ContextManager();
+        private static readonly ContextManager manager = new ContextManager(false);
 
         public static ContextManager Manager
         {
@@ -17,7 +17,7 @@ namespace BinaryFinery.IOC.Runtime.Build
 
         public static ContextManager ManagerForTesting
         {
-            get { return new ContextManager(); }
+            get { return new ContextManager(true); }
         }
 
     }
@@ -25,7 +25,14 @@ namespace BinaryFinery.IOC.Runtime.Build
 
     public class ContextManager
     {
+        private readonly bool testing;
         private readonly Dictionary<Type, Type> customImplementations = new Dictionary<Type, Type>();
+
+
+        internal ContextManager(bool testing)
+        {
+            this.testing = testing;
+        }
 
         public T Create<T>()
             where T : class, IContext
@@ -46,7 +53,12 @@ namespace BinaryFinery.IOC.Runtime.Build
             {
                 return new ContextFactory(typeof(T), custom); // Shit you can't do in java.
             }
-            else return new ContextFactory(typeof(T));
+            else if (testing) 
+                return new ContextFactory(typeof(T));
+            else
+            {
+                throw new BuildException(typeof(T));
+            }
         }
 
         public void RegisterCustomContextImplementation(Type implementation)

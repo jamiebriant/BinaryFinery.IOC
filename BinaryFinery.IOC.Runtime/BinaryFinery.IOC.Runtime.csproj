@@ -49,6 +49,7 @@
     <Compile Include="Meta\ImplementationAttribute.cs" />
     <Compile Include="Meta\InjectAttribute.cs" />
     <Compile Include="Meta\InjectionCompleteHandlerAttribute.cs" />
+    <Compile Include="Meta\OSSpecificImplementationAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

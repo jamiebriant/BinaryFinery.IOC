@@ -88,9 +88,33 @@ namespace BinaryFinery.IOC.Runtime.Build
                     var attrs2 = info.GetCustomAttributes(typeof(ImplementationAttribute), true);
                     if (attrs2.Length > 0)
                     {
-                        var attr2 = (ImplementationAttribute)attrs2[0];
-                        timp = attr2.Type;
-                        ttiming = attr2.Timing;
+                        Type current = null;
+                        foreach (ImplementationAttribute attr2 in attrs2)
+                        {
+                            if (attr2.Applies)
+                            {
+                                if (timp != null)
+                                {
+                                    if (timp.IsAssignableFrom(attr2.Type))
+                                    {
+                                        timp = attr2.Type;
+                                    }
+                                    else if (!attr2.Type.IsAssignableFrom(timp))
+                                    {
+                                        throw new ImplementationsMismatchException(contextType, timp, ti, attr2.Type, ti);
+                                    }
+                                    if (ttiming != InstantiationTiming.Eager)
+                                        ttiming = attr2.Timing;
+                                }
+                                else
+                                {
+                                    timp = attr2.Type;
+                                    ttiming = attr2.Timing;
+                                }
+                            }
+
+                        }
+                        //var attr2 = (ImplementationAttribute)attrs2[0];
                     }
                     else if (!info.PropertyType.IsInterface)
                     {

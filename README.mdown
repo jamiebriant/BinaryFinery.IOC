@@ -22,10 +22,11 @@ make changes in the future without breaking stuff. Sorry.
 3. You can now inject the context itself. 
 1. All requests that result in a given type being manufactured do so only once.
 1. Post-construction events / methods.
+1. An ImplementationAttribute can optionally define an InstantiationTiming value. Eager implementations will be instantiated as soon as the context is created.
 
 New:
 
-1. An ImplementationAttribute can optionally define an InstantiationTiming value. Eager implementations will be instantiated as soon as the context is created.
+1. ImplementationAttribute now has a virtual "Applies" property. This allows one to determine which implementation to use at runtime. I've implemented a OSSpecificImplementationAttribute that triggers of the OS platform.
 
 
 Future versions:
@@ -223,6 +224,19 @@ However, a fragmented interface can be repaired later, by redoing the implentati
     }
 
 If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
+
+Conditional Implementations
+---------------------------
+
+The ImplementationAttribute now has a virtual bool Applies property. This allows a derived version to say, at runtime, if it applies or not. The library 
+includes a OSSpecificImplementation that I use for my MonoTouch projects like so:
+
+    [OSSpecificImplementation(typeof(IOSFileSystem),PlatformID.Unix)]
+    [OSSpecificImplementation(typeof(WindowsFileSystem), PlatformID.Win32NT)]
+    IFileSystem FileSystem { get; }
+
+If two Implementation attributes Apply, then they must be compatible, i.e. they must be in the same class hierarchy. The most specialised one will be used. Otherwise an ImplementationsMismatchException is thrown.
+
 
 Injection Complete Methods
 --------------------------

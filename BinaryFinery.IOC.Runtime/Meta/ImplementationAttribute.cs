@@ -1,5 +1,8 @@
 ﻿// 
-// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// A modification of FileGenReflector: http://filegenreflector.codeplex.com/
+// Copyright (c) 2008 (?) Jason R Bock
+// Released under the Microsoft Public License:  http://filegenreflector.codeplex.com/license
+// Modifications: Copyright (c) 2010 Jamie Briant, BinaryFinery.com
 // 
 using System;
 
@@ -36,6 +39,14 @@ namespace BinaryFinery.IOC.Runtime.Meta
         public Type Type
         {
             get { return type; }
+        }
+
+        public virtual bool Applies
+        {
+            get
+            {
+                return true;
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿// 
-// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
+// A modification of FileGenReflector: http://filegenreflector.codeplex.com/
+// Copyright (c) 2008 (?) Jason R Bock
+// Released under the Microsoft Public License:  http://filegenreflector.codeplex.com/license
+// Modifications: Copyright (c) 2010 Jamie Briant, BinaryFinery.com
 // 
 using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
@@ -19,24 +22,27 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 
     public class TestContextImpl : BaseContextImpl, ITestContext, IEagerTestContext, ILazyTestContext
     {
+        #region ITestContext Members
+
         public Foo Foo
         {
             get { return (Foo) ObjectForProperty("Foo"); }
         }
+
+        #endregion
     }
 
     public interface IInterface1
     {
-        
-    }
-    public interface IInterface2
-    {
-        
     }
 
-    class EagerFoo : Foo
+    public interface IInterface2
     {
-        public static bool IsContructed = false;
+    }
+
+    internal class EagerFoo : Foo
+    {
+        public static bool IsContructed;
 
         public EagerFoo()
         {
@@ -46,7 +52,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 
     public interface IEagerTestContext : ITestContext
     {
-        [Implementation(typeof(EagerFoo),InstantiationTiming.Eager)]
+        [Implementation(typeof(EagerFoo), InstantiationTiming.Eager)]
         Foo Foo { get; }
     }
 
@@ -58,7 +64,6 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 
     public class MyImpl : IInterface1, IInterface2
     {
-        
     }
 
     public interface ITestContext2 : IContext
@@ -72,15 +77,19 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
 
     public class TestContext2Impl : BaseContextImpl, ITestContext2
     {
+        #region ITestContext2 Members
+
         public IInterface1 Iface1
         {
-            get { return (IInterface1)ObjectForProperty("Iface1"); }
+            get { return (IInterface1) ObjectForProperty("Iface1"); }
         }
 
         public IInterface2 Iface2
         {
-            get { return (IInterface2)ObjectForProperty("Iface2"); }
+            get { return (IInterface2) ObjectForProperty("Iface2"); }
         }
+
+        #endregion
     }
 
 
@@ -119,6 +128,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             IFoo foo2 = context.Foo;
             Assert.That(foo, Is.SameAs(foo2));
         }
+
         [Test]
         public void CreatedFooIsSingletonAcrossAllProperties()
         {
@@ -127,6 +137,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             IInterface2 foo2 = context.Iface2;
             Assert.That(foo, Is.SameAs(foo2));
         }
+
         [Test]
         public void EagerImplementaitonsAreCreatedImmediately()
         {
@@ -134,6 +145,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             IEagerTestContext context = CM.Create<IEagerTestContext>();
             Assert.That(EagerFoo.IsContructed, Is.True);
         }
+
         [Test]
         public void LazyImplementaitonsAreNotCreatedImmediately()
         {

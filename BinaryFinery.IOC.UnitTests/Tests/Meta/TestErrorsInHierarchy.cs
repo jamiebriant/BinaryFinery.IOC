@@ -17,7 +17,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [ExpectedException(typeof(ImplementationInterfaceMismatchException))]
         public void ImplementationTypeMustImplementPropertyType()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IDodgyImplContext>();
             Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
         }
@@ -27,7 +27,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         {
             try
             {
-                ContextManager cf = ContextSystem.ManagerForTesting;
+                ContextManager cf = ContextSystem.ManagerForTestingIocItself;
                 IContextFactory factory = cf.GetFactory<IDodgyImplContext>();
                 Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             }
@@ -45,7 +45,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [ExpectedException(typeof(ImplementationsMismatchException))]
         public void ImplementationTypeMustImplementSameOrDerivedOfPreviousImplementation()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IDodgyDerivedImplementationContext>();
             Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
         }
@@ -86,7 +86,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         {
             try
             {
-                ContextManager cf = ContextSystem.ManagerForTesting;
+                ContextManager cf = ContextSystem.ManagerForTestingIocItself;
                 IContextFactory factory = cf.GetFactory<IDodgyDerivedImplementationContext>();
                 Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             }

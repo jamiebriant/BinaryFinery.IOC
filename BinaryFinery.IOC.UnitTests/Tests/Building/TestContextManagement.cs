@@ -13,7 +13,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         [Test]
         public void RegisteringAContextProxyShouldRegisterAllItsInterfaces()
         {
-            ContextManager cm = ContextSystem.ManagerForTesting;
+            ContextManager cm = ContextSystem.ManagerForTestingIocItself;
 
             cm.RegisterCustomContextImplementation(typeof(DependencyTestContextTop));
 
@@ -24,7 +24,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
         [Test]
         public void TestThatCreatedContextsAreIndependent()
         {
-            ContextManager cm = ContextSystem.ManagerForTesting;
+            ContextManager cm = ContextSystem.ManagerForTestingIocItself;
 
             cm.RegisterCustomContextImplementation(typeof(DependencyTestContextTop));
             var context = cm.Create<IDependencyTestMethodInjection2>();

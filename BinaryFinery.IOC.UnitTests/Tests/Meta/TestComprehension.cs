@@ -29,7 +29,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [Test]
         public void TestContextIsForAType()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IRootContext>();
             Assert.That(factory.ContextType, Is.EqualTo(typeof(IRootContext)));
         }
@@ -37,7 +37,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [Test]
         public void TestFooPIsFoo()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IRootContext>();
             Type foot = factory.TypeForProperty("FooP");
             Assert.That(foot, Is.EqualTo(typeof(Foo)));
@@ -46,7 +46,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [Test]
         public void TestFooPIsIFoo()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IImplementationTestContext>();
             Type foot = factory.TypeForProperty("FooP");
             Assert.That(foot, Is.EqualTo(typeof(IFoo)));
@@ -55,7 +55,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [Test]
         public void TestImplementationAttribute()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IImplementationTestContext>();
             Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             Assert.That(foot, Is.EqualTo(typeof(Foo)));
@@ -64,7 +64,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [Test]
         public void TestImplementationTypeWorksWithNoAttribute()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IRootContext>();
             Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             Assert.That(foot, Is.EqualTo(typeof(Foo)));
@@ -73,7 +73,7 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Meta
         [Test]
         public void TestDerivedFooP()
         {
-            ContextManager cf = ContextSystem.ManagerForTesting;
+            ContextManager cf = ContextSystem.ManagerForTestingIocItself;
             IContextFactory factory = cf.GetFactory<IDerivedImplementationTestContext>();
             Type foot = factory.ImplementationTypeForPropertyForTesting("FooP");
             Assert.That(foot, Is.EqualTo(typeof(FooToo)));

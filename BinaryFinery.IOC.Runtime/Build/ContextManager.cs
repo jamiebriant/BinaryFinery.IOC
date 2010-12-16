@@ -20,6 +20,12 @@ namespace BinaryFinery.IOC.Runtime.Build
             get { return new ContextManager(true); }
         }
 
+
+        public static ContextManager ManagerForTestingIocItself
+        {
+            get { return new ContextManager(true); }
+        }
+
     }
 
 

@@ -1,9 +1,4 @@
-﻿// 
-// A modification of FileGenReflector: http://filegenreflector.codeplex.com/
-// Copyright (c) 2008 (?) Jason R Bock
-// Released under the Microsoft Public License:  http://filegenreflector.codeplex.com/license
-// Modifications: Copyright (c) 2010 Jamie Briant, BinaryFinery.com
-// 
+﻿
 using BinaryFinery.IOC.Runtime;
 using BinaryFinery.IOC.Runtime.Build;
 using BinaryFinery.IOC.Runtime.Meta;

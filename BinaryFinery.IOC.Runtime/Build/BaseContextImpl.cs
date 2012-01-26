@@ -1,6 +1,6 @@
 ﻿namespace BinaryFinery.IOC.Runtime.Build
 {
-    public class BaseContextImpl : IContext
+    public abstract class BaseContextImpl : IContext
     {
         private ContextFactory factory;
 
@@ -18,5 +18,15 @@
         {
             return factory.ObjectForProperty(propertyName);
         }
+
+        public T Get<T>(string propertyName)
+        {
+            return (T)factory.ObjectForProperty(propertyName);
+        }
+    }
+
+    public class BasicContextImpl : BaseContextImpl
+    {
+        
     }
 }

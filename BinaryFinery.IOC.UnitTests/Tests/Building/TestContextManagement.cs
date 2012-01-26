@@ -33,5 +33,13 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             Assert.That(context.FooP,Is.Not.EqualTo(context2.FooP));
             
         }
+        [Test]
+        public void TestCanCreateBasicContext()
+        {
+            ContextManager cm = ContextSystem.ManagerForTestingIoCItselfWithoutTestingFlags;
+            var context = cm.CreateBasic<IDependencyTestMethodInjection2>();
+            var foo = context.Get<IFoo>("FooP");
+            Assert.That(foo,Is.InstanceOfType(typeof(Foo)));
+        }
     }
 }

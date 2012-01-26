@@ -64,6 +64,15 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             Assert.That(crf.Context, Is.EqualTo(context));
 
         }
+        [Test]
+        public void TestObjectGetsContextInjectedIfAskedWithBasicContexts()
+        {
+            var context = CM.CreateBasic<IInjectionContext>();
+
+            IFoo foo = context.Get<IFoo>("FooP");
+            ContextRequiringFoo crf = (ContextRequiringFoo)foo;
+            Assert.That(crf.Context, Is.EqualTo(context));
+        }
 
         class INeedFoo
         {

@@ -26,6 +26,11 @@ namespace BinaryFinery.IOC.Runtime.Build
             get { return new ContextManager(true); }
         }
 
+        public static ContextManager ManagerForTestingIoCItselfWithoutTestingFlags
+        {
+            get { return new ContextManager(false); }
+        }
+
     }
 
 
@@ -43,24 +48,31 @@ namespace BinaryFinery.IOC.Runtime.Build
         public T Create<T>()
             where T : class, IContext
         {
-            ContextFactory factory = IntlGetFactory<T>();
+            ContextFactory factory = IntlGetFactory<T>(false);
             return factory.Create<T>();
+        }
+
+        public IContext CreateBasic<T>()
+            where T : class, IContext
+        {
+            ContextFactory factory = IntlGetFactory<T>(true);
+            return factory.CreateBasic<T>();
         }
 
         public IContextFactory GetFactory<T>()
         {
-            return IntlGetFactory<T>();
+            return IntlGetFactory<T>(false);
         }
 
-        private ContextFactory IntlGetFactory<T>()
+        private ContextFactory IntlGetFactory<T>(bool allowBasic)
         {
             Type custom;
             if (customImplementations.TryGetValue(typeof(T), out custom))
             {
                 return new ContextFactory(typeof(T), custom); // Shit you can't do in java.
             }
-            else if (testing) 
-                return new ContextFactory(typeof(T));
+            else if (testing || allowBasic)
+                return new ContextFactory(typeof(T), typeof(BasicContextImpl));
             else
             {
                 throw new BuildException(typeof(T));

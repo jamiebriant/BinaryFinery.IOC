@@ -7,6 +7,8 @@ because the containers are defined using .NET Interfaces, not XML, not dictionar
 This is version 1.0. A very basic 1.0. I wouldn't recommend using it yet, except for the most basic of purposes. OTOH, how you use
 the system isn't going to change: the system uses interfaces and thats about it. There will be more features coming: it is a WIP.
 
+**Update 2012**: This container isn't going to be developed further. See "Lessons" below.
+
 **Note**: For now, the system relies on a manually generating the contexts. See "HACK" below.
 
 What's in the current version:
@@ -96,6 +98,17 @@ be MonoTouch-specific. Finally my application may have further specialization.
 
 The HACK
 --------
+
+**Update**: I got tired of the hack. So I added the ability to create contexts that aren't
+fully typed. So now you can do this:
+
+    CM = ContextSystem.Manager;
+    var context = CM.CreateBasic<IDependencyTestContext>();
+    var result = context.Get<IDeps>("DepsP");
+
+Which, of course, totally defeats the whole goal of this IoC container (i.e. no magic strings
+that can't be automatically refactored). However, the reality is that this is the common use case.
+
 
 At this point, I have not yet implemented automatic generation of Context implementations because a) I didn't need to to get the tests
 to pass and b) I'm doing MonoTouch development and I can't use reflection for that anyway. So for now, there is a missing step:
@@ -266,3 +279,24 @@ Background
 This is my fourth IOC/DI framework. The previous three were written several years ago, and the third iteration is still in use
 today in a robust C# graphical application. I have not looked at that code for several years and this is a clean implementation
 using test driven development to create what I need for my new apps. 
+
+Lessons
+-------
+
+The raison d'etre of this IoC was to create an IoC specified entirely by interfaces so that:
+
+* Classes required for successful injection could be specified.
+* Refactoring tools (like Resharper) would not break the specifications when classes or properties were renamed.
+
+There are two problems. 
+
+1. The system effectively used the C# keyword "interface" to create a new DSL. That DSL wasn't really up to the job.
+2. Code generation isn't supported on monotouch, nor does it have a nice way to generate code at compile time.
+
+As a result of 2, I had to have the "Hack" described above, and that just became tedious. When I then
+went to implement another hack for mobile devices that avoided the need for the first hack, it
+became clear that the DSL is too complicated. I tried to be too clever, but the clever is hardly
+used and gets in the way of the practical.
+
+
+

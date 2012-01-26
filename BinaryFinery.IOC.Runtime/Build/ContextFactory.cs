@@ -443,6 +443,21 @@ namespace BinaryFinery.IOC.Runtime.Build
             return (TContext) externalContext;
         }
 
+        internal IContext CreateBasic<TContext>()
+            where TContext : class, IContext
+        {
+            if (externalContext == null)
+            {
+                object result = Activator.CreateInstance(custom);
+                BaseContextImpl impl = (BaseContextImpl)result;
+                impl.SetFactory(this);
+                // now have to check for eager implementations
+                CreateEagerImplementations(typeof(TContext), impl);
+                externalContext = (IContext)result;
+            }
+            return externalContext;
+        }
+
         private void CreateEagerImplementations(Type type, BaseContextImpl impl)
         {
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);

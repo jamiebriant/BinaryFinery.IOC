@@ -41,5 +41,15 @@ namespace BinaryFinery.IOC.UnitTests.Tests.Building
             var foo = context.Get<IFoo>("FooP");
             Assert.That(foo,Is.InstanceOfType(typeof(Foo)));
         }
+        [Test]
+        public void TestCanCreateBasicContextWithAllInterfaces()
+        {
+            ContextManager cm = ContextSystem.ManagerForTestingIoCItselfWithoutTestingFlags;
+            var context = cm.CreateBasic<ICompound>();
+            var foo = context.Get<Foo>("Foo");
+            Assert.That(foo, Is.InstanceOfType(typeof(Foo)));
+            var bar = context.Get<Bar>("Bar");
+            Assert.That(bar, Is.InstanceOfType(typeof(Bar)));
+        }
     }
 }

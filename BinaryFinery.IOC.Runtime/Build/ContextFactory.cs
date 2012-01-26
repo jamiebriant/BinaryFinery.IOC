@@ -393,7 +393,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                     {
                         return propertyInfo;
                     }
-                    ConstructionNode node = ImplementationTypeForProperty(propertyInfo.Name);
+                    var node = ImplementationTypeForProperty(propertyInfo.Name);
                     if (node.ImplementationType == parameterType || parameterType.IsAssignableFrom(node.ImplementationType))
                     {
                         return propertyInfo;
@@ -437,7 +437,7 @@ namespace BinaryFinery.IOC.Runtime.Build
                 BaseContextImpl impl = (BaseContextImpl) result;
                 impl.SetFactory(this);
                 // now have to check for eager implementations
-                CreateEagerImplementations(custom, impl);
+                CreateEagerImplementations(custom);
                 externalContext = (TContext) result;
             }
             return (TContext) externalContext;
@@ -452,16 +452,25 @@ namespace BinaryFinery.IOC.Runtime.Build
                 BaseContextImpl impl = (BaseContextImpl)result;
                 impl.SetFactory(this);
                 // now have to check for eager implementations
-                CreateEagerImplementations(typeof(TContext), impl);
+                CreateEagerImplementations(typeof(TContext));
                 externalContext = (IContext)result;
             }
             return externalContext;
         }
 
-        private void CreateEagerImplementations(Type type, BaseContextImpl impl)
+        private void CreateEagerImplementations(Type type)
         {
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
+            IEnumerable<PropertyInfo> props;
+            if (type.IsInterface)
+            {
+                var buildProps = new Dictionary<string, PropertyInfo>();
+                AddProps(buildProps, type);
+                props = buildProps.Values;
+            }
+            else
+            {
+                props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            }
             foreach (var info in props)
             {
                 var node = ImplementationTypeForPropertyBuilder(info.Name);
@@ -477,6 +486,22 @@ namespace BinaryFinery.IOC.Runtime.Build
                 }
             }
             CompleteBuild();
+        }
+
+        private void AddProps(Dictionary<string, PropertyInfo> buildProps, Type type)
+        {
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var propertyInfo in props)
+            {
+                if (!buildProps.ContainsKey(propertyInfo.Name))
+                {
+                    buildProps[propertyInfo.Name] = propertyInfo;
+                }
+            }
+            foreach (var iface in type.GetInterfaces())
+            {
+                AddProps(buildProps,iface);
+            }
         }
     }
 }

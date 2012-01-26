@@ -51,5 +51,19 @@ namespace BinaryFinery.IOC.UnitTests.Inputs
         IFoo FooP { get; }
     }
 
+    public interface IBaseOne : IContext
+    {
+        Bar Bar { get; }
+    }
+
+    public interface IBaseTwo : IContext
+    {
+        Foo Foo { get; }
+    }
+
+    public interface ICompound : IBaseOne, IBaseTwo
+    {
+        
+    }
 
 }

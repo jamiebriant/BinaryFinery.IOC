@@ -6,4 +6,5 @@
 *.suo
 bin
 obj
+.DS_Store
 *.DotSettings.user

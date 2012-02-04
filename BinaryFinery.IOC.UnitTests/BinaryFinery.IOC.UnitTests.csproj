@@ -41,21 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Inputs\Cyclic.cs" />
-    <Compile Include="Inputs\Dependencies.cs" />
-    <Compile Include="Inputs\LocationDependencies.cs" />
-    <Compile Include="Inputs\NamedDependencies.cs" />
+    <Compile Include="Tests\IProject.cs" />
+    <Compile Include="Tests\TestBasics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Inputs\Basics.cs" />
-    <Compile Include="Tests\Building\TestCompoundContexts.cs" />
-    <Compile Include="Tests\Building\TestContextManagement.cs" />
-    <Compile Include="Tests\Building\TestDependencyConstruction.cs" />
-    <Compile Include="Tests\Building\TestImplementationStuff.cs" />
-    <Compile Include="Tests\Building\TestIndependentInjection.cs" />
-    <Compile Include="Tests\Building\TestNamedDependencies.cs" />
-    <Compile Include="Tests\Meta\TestComprehension.cs" />
-    <Compile Include="Tests\Meta\TestErrorsInHierarchy.cs" />
-    <Compile Include="Tests\Building\TestConstruction.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BinaryFinery.IOC.Runtime\BinaryFinery.IOC.Runtime.csproj">
@@ -63,6 +51,7 @@
       <Name>BinaryFinery.IOC.Runtime</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

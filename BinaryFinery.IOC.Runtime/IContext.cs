@@ -1,15 +1,16 @@
-﻿// 
-// Copyright (c) 2010 Jamie Briant, BinaryFinery.com
-// 
+﻿using System.Text;
+
 namespace BinaryFinery.IOC.Runtime
 {
     public interface IContext : IInjector
     {
-        T Get<T>(string propertyName);
+        T Get<T>() where T : class;
+        void RegisterSingleton<TBuilt, TRequested>();
+        void RegisterSingleton<TBuilt>();
     }
 
     public interface IInjector
     {
-        void Inject(object injectee);
+        T Inject<T>(T what);
     }
 }

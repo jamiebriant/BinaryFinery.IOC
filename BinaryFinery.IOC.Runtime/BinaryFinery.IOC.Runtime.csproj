@@ -38,18 +38,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Build\BaseContextImpl.cs" />
-    <Compile Include="Build\ContextFactory.cs" />
-    <Compile Include="Build\ContextManager.cs" />
-    <Compile Include="Build\IContextFactory.cs" />
-    <Compile Include="Build\ImplementationInterfaceMismatchException.cs" />
-    <Compile Include="Build\PropertyDependencyResolutionException.cs" />
+    <Compile Include="Builder\BuildNode.cs" />
+    <Compile Include="Builder\BuildTransaction.cs" />
+    <Compile Include="CircularConstructorDependencyException.cs" />
+    <Compile Include="Builder\Context.cs" />
+    <Compile Include="ContextSystem.cs" />
+    <Compile Include="Builder\DefaultInspector.cs" />
     <Compile Include="IContext.cs" />
-    <Compile Include="Meta\ContextAttribute.cs" />
-    <Compile Include="Meta\ImplementationAttribute.cs" />
+    <Compile Include="InjectionException.cs" />
+    <Compile Include="Meta\ConstructionCompleteHandlerAttribute.cs" />
+    <Compile Include="Builder\Node.cs" />
+    <Compile Include="NoSuiteableInjectionConstructorException.cs" />
+    <Compile Include="Builder\TypeKey.cs" />
+    <Compile Include="TypeNotFoundException.cs" />
     <Compile Include="Meta\InjectAttribute.cs" />
     <Compile Include="Meta\InjectionCompleteHandlerAttribute.cs" />
-    <Compile Include="Meta\OSSpecificImplementationAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

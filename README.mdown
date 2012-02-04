@@ -1,15 +1,11 @@
 BinaryFinery.IOC
 ================
 
-BinaryFinery.IOC is a simple Inversion of Control and Dependency Injection framework. BF.IOC is unlike "traditional" IOC containers, 
-because the containers are defined using .NET Interfaces, not XML, not dictionaries, not built using delegates etc.
+The Rewrite
+-----------
 
-This is version 1.0. A very basic 1.0. I wouldn't recommend using it yet, except for the most basic of purposes. OTOH, how you use
-the system isn't going to change: the system uses interfaces and thats about it. There will be more features coming: it is a WIP.
-
-**Update 2012**: This container isn't going to be developed further. See "Lessons" below.
-
-**Note**: For now, the system relies on a manually generating the contexts. See "HACK" below.
+I've rewritten BF.IOC from scratch. v1.0 grouped many singleton specifications into interfaces. In this version,
+singletons are specified explicitly at runtime.
 
 What's in the current version:
 
@@ -17,137 +13,28 @@ What's in the current version:
 2. Object injection using constructors only. Which is actually a very bad habit so don't do it.
 3. Detects cyclic dependencies (throws exception)
 4. Injection using properties. Add an [Inject] attribute.
-1. Injection using methods. Add an [Inject] attribute.
-1. **Breaking Change**: Hand-built proxies now call the internal factories via their base class. This will allow me to
-make changes in the future without breaking stuff. Sorry.
-2. Manual injection. You can now manually inject classes if you have the context handy, using the new Inject(object) method of IContext.
-3. You can now inject the context itself. 
-1. All requests that result in a given type being manufactured do so only once.
-1. Post-construction events / methods.
-1. An ImplementationAttribute can optionally define an InstantiationTiming value. Eager implementations will be instantiated as soon as the context is created.
-
-New:
-
-1. ImplementationAttribute now has a virtual "Applies" property. This allows one to determine which implementation to use at runtime. I've implemented a OSSpecificImplementationAttribute that triggers of the OS platform.
-
-
-Future versions:
-
-2. Context hiearchies.
+1. --Injection using methods. Add an [Inject] attribute.-- (Yeah, I haven't redone this yet).
+2. Manual injection. You can manually inject classes if you have the context handy, using the new Inject(object) method of IContext.
+3. You can inject the context itself. 
+1. Post-construction methods.
 
 How To Use It
 -------------
 
-A library will define a base context: a group of classes/interfaces that it will expect to work together:
-
-    public interface IDependencyTestBaseContext : IContext
-    {
-        IFoo FooP { get; }
-        IDeps DepsP { get; }
-    }
-
-This is a basic context. The names of the properties are unimportant. If you have an instance of IDependencyTestBaseContext you
-can get an IFoo and an IDeps.
-
-The application will then define specific types that it needs created using Implementation attributes:
-
-    public interface IDependencyTestContext : IDependencyTestBaseContext
-    {
-        [Implementation(typeof(Foo))]
-        IFoo FooP { get; }
-        [Implementation(typeof(Deps))]
-        IDeps DepsP { get; }
-    }
-
 The application can then realise this context as follows:
 
-    CM = ContextSystem.Manager;
-    var context = CM.Create<IDependencyTestContext>();
-    var result = context.DepsP;
-    Assert.That(result,Is.Not.Null);
+    CM = ContextSystem.RootContext;
+    CM.RegisterSingleton<IOSImageCache,IImageCache>();
+    CM.RegisterSingleton<SomeConcreteClass>();
 
-If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
+    var context = CM.Create<IImageCache>();
 
-    public interface IEagerTestContext : ITestContext
-    {
-        [Implementation(typeof(EagerFoo),InstantiationTiming.Eager)]
-        Foo Foo { get; }
-    }
-
-	... CM.Create<IEagerTestContext>(); // EagerFoo created before this returns.
-
-An ImplementationAttribute can optionally define an InstantiationTiming value. Eager implementations will be instantiated as soon as the context is created.
-
-Specialisation
---------------
-
-It is possible to specialise further by creating more specialised interfaces:
-
-    public interface IDependencyTestContextAttributed : IDependencyTestContext
-    {
-        [Implementation(typeof(Foo))]
-        IFoo FooP { get; }
-        [Implementation(typeof(DepsAttributed))]
-        IDeps DepsP { get; }
-    }
-
-The system requires that class DepsAttributed is a specialization of class Deps. This is incredibly useful when you have hierarchies of
-libraries which each become more specialized. For example, I have BinaryFinery.Utils which implements logging and exception handling. I then
-have BinaryFinery.Touch, which is a MonoTouch only library. Some of these classes require that the particular logging or exception classes
-be MonoTouch-specific. Finally my application may have further specialization. 
-
-The HACK
---------
-
-**Update**: I got tired of the hack. So I added the ability to create contexts that aren't
-fully typed. So now you can do this:
-
-    CM = ContextSystem.Manager;
-    var context = CM.CreateBasic<IDependencyTestContext>();
-    var result = context.Get<IDeps>("DepsP");
-
-Which, of course, totally defeats the whole goal of this IoC container (i.e. no magic strings
-that can't be automatically refactored). However, the reality is that this is the common use case.
-
-
-At this point, I have not yet implemented automatic generation of Context implementations because a) I didn't need to to get the tests
-to pass and b) I'm doing MonoTouch development and I can't use reflection for that anyway. So for now, there is a missing step:
-
-    public class DependencyTestContextImpl : BaseContextImpl, IDependencyTestBaseContext
-    {
-        public IFoo FooP
-        {
-            get { return (IFoo) ObjectForProperty("FooP"); }
-        }
-
-        public IDeps DepsP
-        {
-            get { return (IDeps) ObjectForProperty("DepsP"); ; }
-        }
-    }
-
-As you can see, this basic version of a Context implementation will be easy to generate using Emit, but for now, you have to do it yourself. 
-You must also manually register this class with the ContextManager:
-
-    CM = ContextSystem.Manager;
-    CM.RegisterCustomContextImplementation(typeof(DependencyTestContextImpl));
-
-A nice shortcut is that if you have specializations of IDependencyTestBaseContext that dont add any more properties (i.e. they just
-slap Implementation attributes on existing ones), then you can easily reuse the custom implementation like so:
-
-    public class DependencyTestContextTop : DependencyTestContextImpl, IDependencyTestContextAttributed, IDependencyTestContext2
-	{
-	}
-	CM.RegisterCustomContextImplementation(typeof(DependencyTestContextTop));
-
-
-Future version will generate the context at runtime using Emit, or tools will create this class for you automatically for use with MonoTouch.
 
 Cyclic Dependencies in Constructors
 -----------------------------------
 
 There are a couple of ways around cyclic dependencies in constructors, though all of them will throw an exception in
-the case that a dependency is actually used.
+the case that a dependency is actually used in the constructor itself. 
 
 1. Use object allocation followed by object initialization.
 2. Use wrappers if the dependency is an interface.
@@ -159,96 +46,6 @@ then it will be handed an exception, or worse, it will fail at some later time.
 
 As a result, BF.IOC will never handle cyclic dependencies in constructors other than to throw an exception.
 
-How dependencies are resolved
------------------------------
-
-Dependencies are resolved in a two stage process, first using type lookup to find a suitable property, and then using property lookup. 
-If Foo has constructor Foo(IBar b) then when Foo is constructed, the factory will look for a property that can supply an IBar defined in that
-interface, and its ancestors. Once it has the property name, it reexamines that property, starting with the specific interface of the context.
-
-Consider this set of contexts:
-
-    public interface ILocationDependencyContext2 : ILocationDependencyContext
-    {
-        [Implementation(typeof(Foo))]
-        IFoo A { get; }
-    }
-
-    public interface IAnotherLocationDependencyContext2 : IAnotherLocationDependencyContext
-    {
-        [Implementation(typeof(OtherFoo))]
-        IFoo B { get; }
-
-        [Implementation(typeof(DontCareDeps))]
-        IDontCareDeps Deps { get; }
-    }
-
-    public interface ICompoundContext : ILocationDependencyContext2, IAnotherLocationDependencyContext2
-    {
-        
-    }
-
-In this example, class DontCareDeps requires an IFoo. It doesnt care what kind of IFoo. I just wants one. However, the author of IAnotherLocationDependencyContext2 expects
-that this instance of DontCareDeps should use class OtherFoo. What should happen when we ask ICompoundContext for its Deps? It should still build Deps using OtherFoo from 
-property B, not Foo from property A. If the a more specialized version of the context is in use, and that context defines a property B, then Deps will now use the implementation
-of B as defined in the specialized version. 
-
-    public interface ICompoundContext : ILocationDependencyContext2, IAnotherLocationDependencyContext2
-    {
-        [Implementation(typeof(ADifferentOtherFoo))]
-        IFoo B { get; } // context.Deps will use ADifferentOtherFoo, not OtherFoo
-    }
-
-The system will resolve ambiguities for a property X by looking in the interface
-where property X was initially declared. In the case where X is actually compatibly defined in more than one "base" interface, the behavior
-is "not defined", i.e. it will use the first one it finds, and this can depending on circumstance, build version, optization etc. 
-
-### Depdendency Fragments
-
-    public interface IFragmentedContext : IContext
-    {
-        [Implementation(typeof(DontCareDeps))]
-        IDontCareDeps Deps { get; }
-    }
-
-A "dependency fragment" is one where an Implementation specifies a class whose dependencies cannot be resolved. In the above case, the concrete implementation DontCareDeps requires
-an IFoo in its constructor. The IFragmentedContext does not declare an IFoo. It is considered broken. The dependency must be resolvable in the base contexts of that 
-interface. The following is *not* enough:
-
-    public interface IMissingPieceContext : IContext
-    {
-        [Implementation(typeof(OtherFoo))]
-        IFoo B { get; }
-    }
-
-    public interface IJoinContext : IFragmentedContext, IMissingPieceContext
-    {
-        
-    }
-
-The IJoinContext does have an IFoo (from IMissingPieceContext), but it will not be used to resolve the dependency in IFragmentedContext. This is by design to reduce fragile behavior.
-
-However, a fragmented interface can be repaired later, by redoing the implentation in a context which can resolve the dependency (directly or indirectly). Such as:
-
-    public interface IWorkingJoinContext : IFragmentedContext, IMissingPieceContext
-    {
-        [Implementation(typeof(DontCareDeps))]
-        IDontCareDeps Deps { get; }
-    }
-
-If two different properties would return the same type of object (either because they declare a concrete return type, or they have the same ImplementatoonAttribute), then they are guaranteed to be the same type.
-
-Conditional Implementations
----------------------------
-
-The ImplementationAttribute now has a virtual bool Applies property. This allows a derived version to say, at runtime, if it applies or not. The library 
-includes a OSSpecificImplementation that I use for my MonoTouch projects like so:
-
-    [OSSpecificImplementation(typeof(IOSFileSystem),PlatformID.Unix)]
-    [OSSpecificImplementation(typeof(WindowsFileSystem), PlatformID.Win32NT)]
-    IFileSystem FileSystem { get; }
-
-If two Implementation attributes Apply, then they must be compatible, i.e. they must be in the same class hierarchy. The most specialised one will be used. Otherwise an ImplementationsMismatchException is thrown.
 
 
 Injection Complete Methods
@@ -276,27 +73,7 @@ after the original groups ICH handler methods are called.
 Background
 ----------
 
-This is my fourth IOC/DI framework. The previous three were written several years ago, and the third iteration is still in use
-today in a robust C# graphical application. I have not looked at that code for several years and this is a clean implementation
-using test driven development to create what I need for my new apps. 
-
-Lessons
--------
-
-The raison d'etre of this IoC was to create an IoC specified entirely by interfaces so that:
-
-* Classes required for successful injection could be specified.
-* Refactoring tools (like Resharper) would not break the specifications when classes or properties were renamed.
-
-There are two problems. 
-
-1. The system effectively used the C# keyword "interface" to create a new DSL. That DSL wasn't really up to the job.
-2. Code generation isn't supported on monotouch, nor does it have a nice way to generate code at compile time.
-
-As a result of 2, I had to have the "Hack" described above, and that just became tedious. When I then
-went to implement another hack for mobile devices that avoided the need for the first hack, it
-became clear that the DSL is too complicated. I tried to be too clever, but the clever is hardly
-used and gets in the way of the practical.
-
-
+This is my fifth IOC/DI framework. The first three were written several years ago, and the third iteration is still in use
+today in a robust C# graphical application. The fourth built on the ideas of the third but proved to be needlessly complex.
+This latest version is a complete rewrite based on what I needed for two different needs: mobile apps and servers.
 

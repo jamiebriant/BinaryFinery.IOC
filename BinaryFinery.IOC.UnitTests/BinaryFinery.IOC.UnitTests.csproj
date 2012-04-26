@@ -46,6 +46,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BinaryFinery.IOC.Attributes\BinaryFinery.IOC.Attributes.csproj">
+      <Project>{C5CCBCA7-E91E-4F00-8263-BED900BE5EB6}</Project>
+      <Name>BinaryFinery.IOC.Attributes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BinaryFinery.IOC.Runtime\BinaryFinery.IOC.Runtime.csproj">
       <Project>{0E897B72-8C69-4054-8714-E1AD8BCE9BE2}</Project>
       <Name>BinaryFinery.IOC.Runtime</Name>

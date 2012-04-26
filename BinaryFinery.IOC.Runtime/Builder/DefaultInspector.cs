@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using BinaryFinery.IOC.Runtime.Meta;
+using BinaryFinery.IOC.Attributes;
 
 namespace BinaryFinery.IOC.Runtime.Builder
 {

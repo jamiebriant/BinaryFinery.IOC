@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{0E897B72-8C69-4054-8714-E1AD8BCE9BE2}</ProjectGuid>
+    <ProjectGuid>{C5CCBCA7-E91E-4F00-8263-BED900BE5EB6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BinaryFinery.IOC.Runtime</RootNamespace>
-    <AssemblyName>BinaryFinery.IOC.Runtime</AssemblyName>
+    <RootNamespace>BinaryFinery.IOC.Attributes</RootNamespace>
+    <AssemblyName>BinaryFinery.IOC.Attributes</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -24,39 +24,25 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
+    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Builder\BuildNode.cs" />
-    <Compile Include="Builder\BuildTransaction.cs" />
-    <Compile Include="CircularConstructorDependencyException.cs" />
-    <Compile Include="Builder\Context.cs" />
-    <Compile Include="ContextSystem.cs" />
-    <Compile Include="Builder\DefaultInspector.cs" />
-    <Compile Include="IContext.cs" />
-    <Compile Include="InjectionException.cs" />
-    <Compile Include="Builder\Node.cs" />
-    <Compile Include="NoSuiteableInjectionConstructorException.cs" />
-    <Compile Include="Builder\TypeKey.cs" />
-    <Compile Include="TypeNotFoundException.cs" />
+    <Compile Include="Attributes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BinaryFinery.IOC.Attributes\BinaryFinery.IOC.Attributes.csproj">
-      <Project>{C5CCBCA7-E91E-4F00-8263-BED900BE5EB6}</Project>
-      <Name>BinaryFinery.IOC.Attributes</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
